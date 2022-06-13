@@ -6,6 +6,7 @@ from flask_limiter.util import get_remote_address
 from scraper import *
 # from flask_sqlalchemy import SQLAlchemy
 from urllib.parse import quote_plus
+import os
 import requests
 import json
 
@@ -91,4 +92,4 @@ def internal_server_error(error):
   return render_template("error.html", title = split[0], text = split[1].strip()), 500
 
 if __name__ == "__main__":
-  app.run(debug = True, use_reloader = True, host = "192.168.87.38")
+  app.run(debug = True, use_reloader = True, host = "0.0.0.0", port = os.environ.get("PORT", 80))
