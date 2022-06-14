@@ -27,12 +27,16 @@ def get_locations():
   for i in soup.find_all("a"):
     if "location" in i["href"]:
       unsplit.append({
+        # nutrition.sa.ucsc.edu
         "id": int(parse_qs(i["href"])["locationNum"][0]),
         "name": parse_qs(i["href"])["locationName"][0],
+        # dining.ucsc.edu/eat
         "description": None,
         "phone": None,
         "address": None,
-        "open": None,
+        "hours": None, # selenium?
+        # waitz
+        "open": None, # include hours?
         "occupation": None
       })
   
@@ -131,6 +135,8 @@ def get_locations():
   for i in unsplit: master["diningHalls" if "dining hall" in i["name"].lower() else "butteries"].append(i)
   return master
 
+pprint(get_locations(), sort_dicts = False)
+
 # process @ request (no loop)
 # TODO: create function after implementing db
 # def update_waitz():
@@ -199,8 +205,8 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
             pass
       # short and long dict attachment
       
-      # empty short meals returns null -> Breakfast: {}, Lunch: {}, etc.
-      master[j["id"]] = None if all(not m for m in menu["short"]) else menu
+      # if all short meal(s) empty, menu is null
+      master[j["id"]] = menu if all(not m for m in menu["short"]) else None
   return master
 
 # imported from parent function
