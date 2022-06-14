@@ -10,6 +10,7 @@ import os
 import requests
 import json
 import gunicorn
+import lxml
 
 limit = "5 per minute"
 app = Flask(__name__, template_folder = "templates")
