@@ -90,4 +90,4 @@ def internal_server_error(error):
   return render_template("error.html", title = split[0], text = split[1].strip()), 500
 
 if __name__ == "__main__":
-  app.run(host = "0.0.0.0", port = os.environ.get("PORT", 5000))
+  app.run(host = "0.0.0.0", port = os.environ.get("PORT"))
