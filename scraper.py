@@ -182,7 +182,7 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
           menu["long"][meal] = {}
           for l in long_soup.find_all("div", {"class": ["longmenucolmenucat", "longmenucoldispname"]}):
             if l["class"][0] == "longmenucolmenucat":
-              menu["long"][meal][l.text.replace("--", "").strip()] = {}
+              menu["long"][meal][l.text.strip("--")[1].strip()] = {}
             else:
               course = list(menu["long"][meal].keys())[-1]
               menu["long"][meal][course][normalize("NFKD", l.text).strip()] = (l.find("input").attrs["value"])
@@ -193,7 +193,7 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
         if k["class"][0] == "shortmenumeals":
           menu["short"][k.text] = {}
         elif k["class"][0] == "shortmenucats":
-          menu["short"][list(menu["short"].keys())[-1]][k.text.replace("--", "").strip()] = {}
+          menu["short"][list(menu["short"].keys())[-1]][k.text.strip("--")[1].strip()] = {}
         else:
           meal = list(menu["short"].keys())[-1]
           course = list(menu["short"][meal].keys())[-1]
