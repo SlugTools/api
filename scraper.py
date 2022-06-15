@@ -135,7 +135,7 @@ def get_locations():
   for i in unsplit: master["diningHalls" if "dining hall" in i["name"].lower() else "butteries"].append(i)
   return master
 
-pprint(get_locations(), sort_dicts = False)
+# pprint(get_locations(), sort_dicts = False)
 
 # process @ request (no loop)
 # TODO: create function after implementing db
@@ -161,6 +161,7 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
       # short scraping
       new = session.get("https://nutrition.sa.ucsc.edu/")
       new = session.get(f"{home}shortmenu.aspx?locationNum={j['id']:02d}&locationName={quote_plus(j['name'])}&naFlag=1&dtdate={date}")
+      print(f"{home}shortmenu.aspx?locationNum={j['id']:02d}&locationName={quote_plus(j['name'])}&naFlag=1&dtdate={date}")
       if new.status_code == 500:
         return None
       short_soup = BeautifulSoup(new.text, "lxml")
@@ -182,7 +183,7 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
           menu["long"][meal] = {}
           for l in long_soup.find_all("div", {"class": ["longmenucolmenucat", "longmenucoldispname"]}):
             if l["class"][0] == "longmenucolmenucat":
-              menu["long"][meal][l.text.strip("--")[1].strip()] = {}
+              menu["long"][meal][l.text.split("--")[1].strip()] = {}
             else:
               course = list(menu["long"][meal].keys())[-1]
               menu["long"][meal][course][normalize("NFKD", l.text).strip()] = (l.find("input").attrs["value"])
@@ -193,7 +194,7 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
         if k["class"][0] == "shortmenumeals":
           menu["short"][k.text] = {}
         elif k["class"][0] == "shortmenucats":
-          menu["short"][list(menu["short"].keys())[-1]][k.text.strip("--")[1].strip()] = {}
+          menu["short"][list(menu["short"].keys())[-1]][k.text.split("--")[1].strip()] = {}
         else:
           meal = list(menu["short"].keys())[-1]
           course = list(menu["short"][meal].keys())[-1]
@@ -204,9 +205,8 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
           except:
             pass
       # short and long dict attachment
-      
       # if all short meal(s) empty, menu is null
-      master[j["id"]] = menu if all(not m for m in menu["short"]) else None
+      master[j["id"]] = None if all(not m for m in menu["short"]) else menu
   return master
 
 # imported from parent function
