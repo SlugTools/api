@@ -15,7 +15,7 @@ limiter = Limiter(
   key_func = get_remote_address,
   default_limits = [limit],
 )
-app.config['JSON_SORT_KEYS'] = False
+app.config['JSON_SORT_KEYS'] = False # @hdadhich01
 # app.config['SERVER_NAME'] = "localhost:5000"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///locations.db"
 # db = SQLAlchemy(app)
