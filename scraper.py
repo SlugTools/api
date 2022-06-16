@@ -298,7 +298,7 @@ def get_item(item_id: string):
   # pattern = rf"'({'|'.join(keywords)})'\s*(\d+\.?\d*\s*(?:oz|g|%|mg|)(?:\s*\d*%)?)"
   matches = dict(findall(pattern, complete))
   matches = {k:v.strip() for k, v in matches.items()}
-  # current bypass for potassium error
+  # FIXME: current bypass for potassium error
   copy = {}
   for item in keywords:
     try:
@@ -333,43 +333,3 @@ def get_item(item_id: string):
   # master["nutrition"]["amountPerServing"]["calories"] = search(r"ies (.*)*Per", string).group(1)
   
   return master
-
-# def get_items(location_id):
-#   menus = get_menus()[45]
-
-# def get_menu(location_id: int, date):
-#   new = None
-#   locations = get_locations()
-#   for i in locations:
-#     if i["id"] == location_id:
-#       new = session.get("https://nutrition.sa.ucsc.edu/")
-#       new = session.get(f"{home}shortmenu.aspx?sName=UC+Santa+Cruz+Dining&locationNum={location_id}&locationName={quote_plus(i['name'])}&naFlag=1&WeeksMenus=UCSC+-+This+Week%27s+Menus&myaction=read&dtdate={quote_plus(date)}")
-#       print(f"{home}shortmenu.aspx?sName=UC+Santa+Cruz+Dining&locationNum={location_id}&locationName={quote_plus(i['name'])}&naFlag=1&WeeksMenus=UCSC+-+This+Week%27s+Menus&myaction=read&dtdate={quote_plus(date)}")
-#       # new = session.get(f"https://nutrition.sa.ucsc.edu/longmenu.aspx?sName=UC+Santa+Cruz+Dining&locationNum={location_id}&locationName={quote_plus(i['name'])}&naFlag=1&WeeksMenus=UCSC+-+This+Week%27s+Menus&dtdate={quote_plus(date.replace('-', '/'))}&mealName={meal_name}")
-#   if new is None:
-#     return -1
-#   soup = BeautifulSoup(new.text, "lxml")
-#   master = {"short": {}, "long": {}}
-#   # TODO: there might be no data for the specified date, develop conditional
-#   for i in soup.find_all("a"):
-#     # TODO: do a faster check
-#     if i["href"].startswith("longmenu"):
-#       new = session.get(home + i["href"])
-#       soup = BeautifulSoup(new.text, "lxml")
-#       meal_name = parse_qs(i["href"])["mealName"][0]
-#       master["short"][meal_name] = {}
-#       for j in soup.find_all("div", {"class": ["longmenucolmenucat", "longmenucoldispname"]}):
-#         if j["class"][0] == "longmenucolmenucat":
-#           key = j.text.replace("--", "").strip()
-#           # key = search("-- (.*) --", "", i.text).strip()
-#           # TODO: repetitive in each location's menu, include as another cat?
-#           # if key[0] in ["Cereal", "All Day", "Condiments", "Bread and Bagels", "Beverages", "Breakfast Bar", "Salad Bar", "Deli Bar"]:
-#           #   key[1] = True
-#           #   master[meal_name]["long"][key] = []
-#           master["short"][meal_name][key] = []
-#         else:
-#           key = list(master["short"][meal_name].keys())[-1]
-#           # print(key)
-#           # print(j.find("input").attrs["value"])
-#           master["short"][meal_name][key].append(j.find("input").attrs["value"])
-#   return master
