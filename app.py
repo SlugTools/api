@@ -30,9 +30,9 @@ dashboard.bind(app)
 def home():
   return render_template("api_home.html")
 
-@app.route("/favicon.ico")
-def favicon():
-  return "https://pbs.twimg.com/profile_images/539512753677815808/UGmYRvvW_400x400.png"
+# @app.route("/favicon.ico")
+# def favicon():
+#   return "https://pbs.twimg.com/profile_images/539512753677815808/UGmYRvvW_400x400.png"
 
 @app.route("/locations")
 def import_locations():
