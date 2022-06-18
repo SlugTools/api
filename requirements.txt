@@ -1,6 +1,8 @@
 beautifulsoup4==4.11.1
 Flask==2.1.2
 Flask_Limiter==2.4.6
+Flask_MonitoringDashboard==3.1.1
+gunicorn==20.1.0
 lxml==4.9.0
 requests==2.28.0
 thefuzz==0.19.0
