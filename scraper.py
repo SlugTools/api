@@ -20,25 +20,25 @@ nutrition_label = "https://nutrition.sa.ucsc.edu/label.aspx?locationNum=40&locat
 # this func is heavy so limit scrape calls to once a day
 # FIXME: incorporate waitz process into another func, since this func can't be called frequently
 def get_locations():
-  unsplit = []
+  unsplit = {}
   page = session.get("https://nutrition.sa.ucsc.edu/")
   soup = BeautifulSoup(page.text, "lxml")
   # initial return setup; parses only from menu page
   for i in soup.find_all("a"):
     if "location" in i["href"]:
-      unsplit.append({
+      unsplit[int(parse_qs(i["href"])["locationNum"][0])] = {
         # nutrition.sa.ucsc.edu
-        "id": int(parse_qs(i["href"])["locationNum"][0]),
+        # "id": int(parse_qs(i["href"])["locationNum"][0]),
         "name": parse_qs(i["href"])["locationName"][0],
         # dining.ucsc.edu/eat
         "description": None,
         "phone": None,
         "address": None,
-        "hours": None, # selenium?
+        # "hours": None, # selenium?
         # waitz
         "open": None, # include hours?
         "occupation": None
-      })
+      }
   
   page = session.get("https://dining.ucsc.edu/eat/")
   soup = BeautifulSoup(page.text, "lxml-xml")
@@ -54,9 +54,9 @@ def get_locations():
     ratio_list = {}
     isMultiple = [False, []]
     for j in matches:
-      ratio = fuzz.ratio(i["name"].lower().replace("dining hall", ""), j.text.lower().replace("dining hall", ""))
+      ratio = fuzz.ratio(unsplit[i]["name"].lower().replace("dining hall", ""), j.text.lower().replace("dining hall", ""))
       ratio_list[ratio] = j
-      if i["name"].lower()[:-1] in j.text.lower() and "closed" not in j.text.lower():
+      if unsplit[i]["name"].lower()[:-1] in j.text.lower() and "closed" not in j.text.lower():
         # FIXME: only serves perk coffee bars; go for global approach
         if ratio == 52: # detects for perk bar (phys sci building)
           isMultiple[0] = True
@@ -74,65 +74,71 @@ def get_locations():
       # current compromise to get past the name - ratio problem
       if len(ratio_list) == 4:
         break
-      ratio = fuzz.ratio(i["name"].lower().replace("dining hall", ""), j["name"].lower().replace("dining hall", ""))
+      ratio = fuzz.ratio(unsplit[i]["name"].lower().replace("dining hall", ""), j["name"].lower().replace("dining hall", ""))
       ratio_list[ratio] = [j, comp_data["data"][len(ratio_list)]]
     max_ratio = max(list(ratio_list.keys()))
 
     # location matching
     if isMultiple[0] is True:
-      if not isinstance(unsplit[-1]["description"], list):
-        unsplit[-1]["description"] = []
-        unsplit[-1]["phone"] = []
-        unsplit[-1]["address"] = []
-      for i in isMultiple[1]:
-        unsplit[-1]["description"].append(sub(" +", " ", normalize("NFKD", matches[i].find("p").text.split("✆")[0].strip())))
-        unsplit[-1]["phone"].append(sub(" +", " ", normalize("NFKD", matches[i].find("p").text.split("✆")[1].strip())))
+      if not isinstance(unsplit[i]["description"], list):
+        unsplit[i]["description"] = []
+        unsplit[i]["phone"] = []
+        unsplit[i]["address"] = []
+      for j in isMultiple[1]:
+        unsplit[i]["description"].append(sub(" +", " ", normalize("NFKD", matches[j].find("p").text.split("✆")[0].strip())))
+        unsplit[i]["phone"].append(sub(" +", " ", normalize("NFKD", matches[j].find("p").text.split("✆")[1].strip())))
         # https://developers.google.com/maps/documentation/urls/get-started
-        unsplit[-1]["address"].append(f"https://www.google.com/maps/dir/?api=1&destination={quote_plus(i.text.strip())}")
+        unsplit[i]["address"].append(f"https://www.google.com/maps/dir/?api=1&destination={quote_plus(j.text.strip())}")
     else:
-      unsplit[unsplit.index(i)]["description"] = sub(" +", " ", normalize("NFKD", li.find("p").text.split("✆")[0].strip()))
-      unsplit[unsplit.index(i)]["phone"] = sub(" +", " ", normalize("NFKD", li.find("p").text.split("✆")[1].strip()))
-      unsplit[unsplit.index(i)]["address"] = f"https://www.google.com/maps/dir/?api=1&destination={quote_plus(i['name'])}"
+      unsplit[i]["description"] = sub(" +", " ", normalize("NFKD", li.find("p").text.split("✆")[0].strip()))
+      unsplit[i]["phone"] = sub(" +", " ", normalize("NFKD", li.find("p").text.split("✆")[1].strip()))
+      unsplit[i]["address"] = f"https://www.google.com/maps/dir/?api=1&destination={quote_plus(unsplit[i]['name'])}"
 
     # waitz matching
     # compromise in matching c9/c10 to c9/john r. lewis; contacted waitz support to change name
     # c9/c10 => c9/john r. lewis gives a ratio of 46, whereas others are 90+
     if max_ratio == 46 or max_ratio > 90:
       if ratio_list[max_ratio][0]["isOpen"]:
-        unsplit[unsplit.index(i)]["open"] = True
+        unsplit[i]["open"] = True
         trends = []
         for j in ratio_list[max_ratio][1]["comparison"]:
           if j["valid"]:
             soup = BeautifulSoup(j["string"], "lxml")
             text = soup.get_text()
             trends.append(text)
-        unsplit[unsplit.index(i)]["occupation"] = {
+        unsplit[i]["occupation"] = {
           "people": ratio_list[max_ratio][0]["people"],
           "capacity": ratio_list[max_ratio][0]["capacity"],
           "busyness": ratio_list[max_ratio][0]["locHtml"]["summary"],
           "bestLocation": None,
           "subLocations": None,
-          "trends": trends # [i for i in ratio_list[max_ratio][1]["comparison"]]
+          "trends": None
         }
         # TODO: very scuffed approach, try to repair
         if ratio_list[max_ratio][0]["bestLocations"]:
           if ratio_list[max_ratio][0]["subLocs"]:
-            unsplit[unsplit.index(i)]["occupation"]["subLocations"] = []
+            unsplit[i]["occupation"]["subLocations"] = []
             for j in ratio_list[max_ratio][0]["subLocs"]:
               if j["id"] == ratio_list[max_ratio][0]["bestLocations"][0]["id"]:
-                unsplit[unsplit.index(i)]["occupation"]["bestLocation"] = j["name"]
-              unsplit[unsplit.index(i)]["occupation"]["subLocations"].append({
+                unsplit[i]["occupation"]["bestLocation"] = j["name"]
+              unsplit[i]["occupation"]["subLocations"].append({
                 "name": j["name"],
                 "abbreviation": j["abbreviation"],
                 "people": j["people"],
                 "capacity": j["capacity"],
                 "busyness": j["subLocHtml"]["summary"]
               })
+        trends = []
+        for j in ratio_list[max_ratio][1]["comparison"]:
+          if j["valid"]:
+            soup = BeautifulSoup(j["string"], "lxml")
+            trends.append(soup.get_text())
+        unsplit[i]["occupation"]["trends"] = trends if trends else None
       else:
-        unsplit[unsplit.index(i)]["open"] = False
+        unsplit[i]["open"] = False
 
-  master = {"diningHalls": [], "butteries": []}
-  for i in unsplit: master["diningHalls" if "dining hall" in i["name"].lower() else "butteries"].append(i)
+  master = {"diningHalls": {}, "butteries": {}}
+  for i in unsplit: master["diningHalls" if "dining hall" in unsplit[i]["name"].lower() else "butteries"][i] = unsplit[i]
   return master
 
 # pprint(get_locations(), sort_dicts = False)
@@ -156,19 +162,19 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
   locations = get_locations()
   master = {}
   for i in locations:
+    master[i] = {}
     for j in locations[i]:
       menu = {"short": {}, "long": {}}
       # short scraping
       new = session.get("https://nutrition.sa.ucsc.edu/")
-      new = session.get(f"{home}shortmenu.aspx?locationNum={j['id']:02d}&locationName={quote_plus(j['name'])}&naFlag=1&dtdate={date}")
-      print(f"{home}shortmenu.aspx?locationNum={j['id']:02d}&locationName={quote_plus(j['name'])}&naFlag=1&dtdate={date}")
+      new = session.get(f"{home}shortmenu.aspx?locationNum={j:02d}&locationName={quote_plus(locations[i][j]['name'])}&naFlag=1&dtdate={date}")
       if new.status_code == 500:
         return None
       short_soup = BeautifulSoup(new.text, "lxml")
       # TODO: no data available or empty meal containers, develop conditional for latter
       status = short_soup.find("div", {"class": "shortmenuinstructs"})
       if status.text == "No Data Available":
-        master[j["id"]] = None
+        master[i][j] = None
         continue
       
       # TODO: could run two loops concurrently with multiprocessing, attempt later
@@ -181,13 +187,20 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
           long_soup = BeautifulSoup(new.text, "lxml")
           meal = parse_qs(k["href"])["mealName"][0]
           menu["long"][meal] = {}
-          for l in long_soup.find_all("div", {"class": ["longmenucolmenucat", "longmenucoldispname"]}):
+          for l in long_soup.find_all("div", {"class": ["longmenucolmenucat", "longmenucoldispname", "longmenucolprice"]}):
             if l["class"][0] == "longmenucolmenucat":
               menu["long"][meal][l.text.split("--")[1].strip()] = {}
-            else:
+            elif l["class"][0] == "longmenucoldispname":
               course = list(menu["long"][meal].keys())[-1]
-              menu["long"][meal][course][normalize("NFKD", l.text).strip()] = (l.find("input").attrs["value"])
-              item_list[normalize("NFKD", l.text).strip()] = l.find("input").attrs["value"]
+              item_id = l.find("input").attrs["value"]
+              menu["long"][meal][course][normalize("NFKD", l.text).strip()] = item_id
+              item_list[normalize("NFKD", l.text).strip()] = item_id
+            elif l.text.strip() != "": # else doesn't account for course row price whitespace
+              course = list(menu["long"][meal].keys())[-1]
+              item = list(menu["long"][meal][course].keys())[-1]
+              item_price = {"id": menu["long"][meal][course][item], "price": l.text}
+              menu["long"][meal][course][item] = item_price
+              item_list[item] = item_price
       
       # short scraping
       for k in short_soup.find_all("div", {"class": ["shortmenumeals", "shortmenucats", ["shortmenurecipes"]]}): # meal(s), course(s), item(s)
@@ -206,7 +219,12 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
             pass
       # short and long dict attachment
       # if all short meal(s) empty, menu is null
-      master[j["id"]] = None if all(not m for m in menu["short"]) else menu
+      master[i][j] = None if all(not m for m in menu["short"]) else menu
+  # remove submenus; short == long
+  # parsing diningHalls and butteries separately not practical
+  for i in master["butteries"]:
+    if master["butteries"][i]:
+      master["butteries"][i] = master["butteries"][i]["short"] 
   return master
 
 # imported from parent function
@@ -315,7 +333,7 @@ def get_item(item_id: string):
     master["nutrition"]["amountPerServing"][key] = temp if key != "calories" else int(temp)
 
   for index, key in enumerate(master["nutrition"]["percentDailyValue"]):
-    if index < 6: # exclude vitD, calcium, iron, and potassium
+    if index < 6: # exclude vitaminD, calcium, iron, and potassium
       temp = master["nutrition"]["amountPerServing"][key]
       # FIXME: "- - - g" issue (/400387*2*01)
       temp = temp[temp.index("g") + 1:len(temp) - 1]

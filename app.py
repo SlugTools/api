@@ -1,8 +1,8 @@
 from datetime import datetime
-from flask import abort, Flask, jsonify, render_template, request
+from flask import abort, Flask, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-# import flask_monitoringdashboard as dashboard
+import flask_monitoringdashboard as dashboard
 from scraper import *
 # from flask_sqlalchemy import SQLAlchemy
 from urllib.parse import quote_plus
@@ -20,7 +20,7 @@ app.config['JSON_SORT_KEYS'] = False # @hdadhich01
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///locations.db"
 # db = SQLAlchemy(app)
 # dashboard.config.init_from(file='/C:\\Users\\hdadh\\Desktop\\FlaskApp/config.cfg')
-# dashboard.bind(app)
+dashboard.bind(app)
 
 # TODO: get both url and query parameters working for each route
 # FIXME: types for all parameters, route functions, and call functions
@@ -36,12 +36,12 @@ def favicon():
 
 @app.route("/locations")
 def import_locations():
-  return jsonify(get_locations())
+  return get_locations()
 
 @app.route("/locations/<int:location_id>")
 def import_location(location_id: int):
   response = get_location(int(f"{location_id:02d}"))
-  return jsonify(response) if response else abort(400)
+  return response if response else abort(400)
 
 @app.route("/menus")
 def import_menus():
@@ -49,7 +49,7 @@ def import_menus():
   if request.args.get("date"):
     date = request.args.get("date")
   response = get_menus(date)
-  return jsonify(response) if response else abort(400)
+  return response if response else abort(400)
 
 @app.route("/menus/<int:location_id>")
 def import_menu(location_id: int):
@@ -57,17 +57,17 @@ def import_menu(location_id: int):
   if request.args.get("date"):
     date = request.args.get("date")
   response = get_menu(int(f"{location_id:02d}"), date)
-  return jsonify(response) if response else abort(400)
+  return response if response else abort(400)
 
 @app.route("/items/<item_id>")
 def import_item(item_id):
   response = get_item(item_id)
-  return jsonify(response) if response else abort(400)
+  return response if response else abort(400)
 
 @app.route("/items/<item_id1>/<item_id2>")
 def import_fraction_item(item_id1, item_id2):
   response = get_item(f"{item_id1}/{item_id2}")
-  return jsonify(response) if response else abort(400)
+  return response if response else abort(400)
 
 @app.errorhandler(400)
 def bad_request(error):
