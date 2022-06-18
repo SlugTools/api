@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import abort, Flask, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import flask_monitoringdashboard as dashboard
+# import flask_monitoringdashboard as dashboard
 from scraper import *
 # from flask_sqlalchemy import SQLAlchemy
 from urllib.parse import quote_plus
@@ -20,7 +20,7 @@ app.config['JSON_SORT_KEYS'] = False # @hdadhich01
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///locations.db"
 # db = SQLAlchemy(app)
 # dashboard.config.init_from(file='/C:\\Users\\hdadh\\Desktop\\FlaskApp/config.cfg')
-dashboard.bind(app)
+# dashboard.bind(app)
 
 # TODO: get both url and query parameters working for each route
 # FIXME: types for all parameters, route functions, and call functions
