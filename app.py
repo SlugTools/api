@@ -4,8 +4,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import flask_monitoringdashboard as dashboard
 from scraper import *
-# from flask_sqlalchemy import SQLAlchemy
-from urllib.parse import quote_plus
 import os
 
 limit = "5 per minute"
