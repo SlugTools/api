@@ -1,8 +1,9 @@
 import string
 from bs4 import BeautifulSoup, SoupStrainer
+import cchardet
 from datetime import datetime
 from pprint import pprint
-from re import findall, search, sub
+from re import findall, sub
 from requests import Session
 from thefuzz import fuzz
 from unicodedata import normalize
@@ -218,8 +219,7 @@ def get_menus(date = datetime.now().strftime("%m-%d-%Y")):
           except:
             pass
       # short and long dict attachment
-      # if all short meal(s) empty, menu is null
-      master[i][j] = None if all(not m for m in menu["short"]) else menu
+      master[i][j] = None if all(not menu["short"][m] for m in menu["short"]) else menu
   # remove submenus; short == long
   # parsing diningHalls and butteries separately not practical
   for i in master["butteries"]:
