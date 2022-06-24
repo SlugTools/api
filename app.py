@@ -32,7 +32,7 @@ def home():
 # def favicon():
 #   return "https://pbs.twimg.com/profile_images/539512753677815808/UGmYRvvW_400x400.png"
 
-@app.route("/locations")
+@app.route("/locations", subdomain = "api")
 def import_locations():
   return get_locations()
 
@@ -41,7 +41,7 @@ def import_location(location_id: int):
   response = get_location(int(f"{location_id:02d}"))
   return response if response else abort(400)
 
-@app.route("/menus")
+@app.route("/menus", subdomain = "api")
 def import_menus():
   date = datetime.now().strftime("%m-%d-%Y")
   if request.args.get("date"):
@@ -49,7 +49,7 @@ def import_menus():
   response = get_menus(date)
   return response if response else abort(400)
 
-@app.route("/menus/<int:location_id>")
+@app.route("/menus/<int:location_id>", subdomain = "api")
 def import_menu(location_id: int):
   date = datetime.now().strftime("%m-%d-%Y")
   if request.args.get("date"):
@@ -57,12 +57,12 @@ def import_menu(location_id: int):
   response = get_menu(int(f"{location_id:02d}"), date)
   return response if response else abort(400)
 
-@app.route("/items/<item_id>")
+@app.route("/items/<item_id>", subdomain = "api")
 def import_item(item_id):
   response = get_item(item_id)
   return response if response else abort(400)
 
-@app.route("/items/<item_id1>/<item_id2>")
+@app.route("/items/<item_id1>/<item_id2>", subdomain = "api")
 def import_fraction_item(item_id1, item_id2):
   response = get_item(f"{item_id1}/{item_id2}")
   return response if response else abort(400)
