@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import abort, Flask, render_template, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import flask_monitoringdashboard as dashboard
+# import flask_monitoringdashboard as dashboard
 from scraper import *
 import os
 
