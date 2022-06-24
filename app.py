@@ -18,7 +18,6 @@ app.config['JSON_SORT_KEYS'] = False # @hdadhich01
 # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///locations.db"
 # db = SQLAlchemy(app)
 # dashboard.config.init_from(file='/C:\\Users\\hdadh\\Desktop\\FlaskApp/config.cfg')
-dashboard.bind(app)
 
 # TODO: get both url and query parameters working for each route
 # FIXME: types for all parameters, route functions, and call functions
