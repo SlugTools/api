@@ -17,7 +17,6 @@ menu_table = "https://nutrition.sa.ucsc.edu/longmenu.aspx?sName=UC+Santa+Cruz+Di
 menu_table = "https://nutrition.sa.ucsc.edu/longmenu.aspx?sName=UC+Santa+Cruz+Dining&locationNum=05&locationName= Cowell%2fStevenson+Dining+Hall &naFlag=1&WeeksMenus=UCSC+-+This+Week%27s+Menus&dtdate= 05%2f07%2f 2022&mealName= Breakfast"
 nutrition_label = "https://nutrition.sa.ucsc.edu/label.aspx?locationNum=40&locationName=College+Nine%2fJohn+R.+Lewis+Dining+Hall&dtdate=05%2f07%2f2022&RecNumAndPort=400387*3"
 
-# rate limit each function accordingly
 # this func is heavy so limit scrape calls to once a day
 # FIXME: incorporate waitz process into another func, since this func can't be called frequently
 def get_locations():

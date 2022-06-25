@@ -6,12 +6,11 @@ from flask_limiter.util import get_remote_address
 from scraper import *
 import os
 
-limit = "5 per minute"
 app = Flask(__name__, template_folder = "templates")
 limiter = Limiter(
   app,
   key_func = get_remote_address,
-  default_limits = [limit],
+  default_limits = ["5 per minute"],
 )
 app.config['JSON_SORT_KEYS'] = False # @hdadhich01
 # app.config['SERVER_NAME'] = "localhost:5000"
