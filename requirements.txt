@@ -1,6 +1,8 @@
 beautifulsoup4 # scraper
 cchardet # optimize scraper
 deta[async]==1.1.0a2 # hoster
+dotenv
+pprint
 python-dotenv # load env variables
 flask[async] # framework
 flask-cors # allow cross-origin AJAX

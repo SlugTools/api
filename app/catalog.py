@@ -2,7 +2,6 @@ from aiohttp import ClientSession
 from bs4 import BeautifulSoup, SoupStrainer
 from datetime import datetime
 from flask import abort, Blueprint, request
-from math import ceil
 from orjson import loads
 from pprint import pprint
 from requests import Session

@@ -38,3 +38,4 @@ app.register_blueprint(laundry.laundry_bp, url_prefix = "/laundry")
 # soup = BeautifulSoup(page.text, 'lxml')
 
 app.register_blueprint(catalog.catalog_bp, url_prefix = "/catalog")
+# TODO: maybe a calender blueprint?
