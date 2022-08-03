@@ -5,6 +5,7 @@ python-dotenv # load env variables
 flask[async] # framework
 flask-cors # allow cross-origin AJAX
 flask-limiter # rate limiter
+gunicorn
 lxml # parser for scraper
 orjson # serializer for scraper
 python-levenshtein # optimize scraper
