@@ -8,11 +8,6 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from requests import get
 
-from app import catalog
-from app import errors
-from app import food
-from app import home
-from app import laundry
 from config import Config
 
 # from .scraper.locations import scrape_locations
@@ -22,16 +17,17 @@ print("instantiating app...")
 app = Flask(__name__)
 app.config.from_object(Config)
 cors = CORS(app)
+limiter = Limiter(key_func=get_remote_address)
+limiter.init_app(app)
 # deta = Deta(app.config["DETA_KEY"])
 # locationsDB = deta.Base("locations")
 # locationsDB.put(scrape_locations())
 # menusDB = deta.Base("menus")
 # menusDB.put(scrape_menus(datetime.now().strftime('%m-%d-%Y')))
 
-limiter = Limiter(key_func=get_remote_address)
-limiter.init_app(app)
 
-print("instantiating routes...")
+from app import catalog, errors, food, home, laundry
+
 app.register_blueprint(home.home_bp)
 app.register_blueprint(food.food_bp, url_prefix="/food")
 app.register_blueprint(laundry.laundry_bp, url_prefix="/laundry")
