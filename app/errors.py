@@ -4,7 +4,7 @@ from app import app
 
 
 # single file with one function
-# might split later to accommodate all errors with different display funcs
+# might split later to accommodate all errors with different display funcs; test
 @app.errorhandler(400)
 @app.errorhandler(404)
 @app.errorhandler(429)
