@@ -121,11 +121,4 @@ async def get_teacher(name):
 #     page = session.post("https://pisa.ucsc.edu/class_search/index.php", data=data)
 #     soup = BeautifulSoup(page.text, "lxml")
 
-#     # api.slughub.com/food/locations
-#     # api.slughub.com/food/locations/<id>
-#     # api.slughub.com/food/menus/<id>
-#     # api.slughub.com/food/items/<id>
-
-#     # api.slughub.com/laundry/locations
-#     # api.slughub.com/class/<name>
-#     # api.slughub.com/professor/<name>
+# @catalog_bp.route("/calendar") # make calendar endpoint
