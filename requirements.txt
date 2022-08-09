@@ -1,33 +1,14 @@
-beautifulsoup4 # scraper
-cchardet # optimize scraper
-deta[async]==1.1.0a2 # hoster
-python-dotenv # load env variables
-flask[async] # framework
-flask-cors # allow cross-origin AJAX
-flask-limiter # rate limiter
+beautifulsoup4
+cchardet
+deta[async]==1.1.0a2
+flask-cors
+flask-limiter
+flask[async]
 gunicorn
-lxml # parser for scraper
-orjson # serializer for scraper
-python-levenshtein # optimize scraper
-ratemyprofessorapi # professor ratings
-requests # access remote sites
-round-nutrition # round nutritional information
-thefuzz # match strings
-# flask-mail # emailer
-# laundryviewer # laundry viewer
-
-# full-fletched instance packages
-# celery # database queue workers
-# flask-migrate # database migrations
-# flask-sqlalchemy # database
-# gunicorn # web server
-# hiredis # C client for Redis
-# psycopg2 # DBAPI for PostgreSQL
-# redis # queue for database
-
-# future implementation
-# pyjwt # JSON web tokens
-# flask-cas # CAS authentication
-# flake8 # linting
-# pep8-naming # linting
-# pycodestyle # linting
+lxml
+orjson
+python-dotenv
+python-levenshtein
+requests
+round-nutrition
+thefuzz

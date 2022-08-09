@@ -1,12 +1,20 @@
-from bs4 import BeautifulSoup
-from config import Config
 from datetime import datetime
+
+from bs4 import BeautifulSoup
 from deta import Deta
 from flask import Flask
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from requests import get
+
+from app import catalog
+from app import errors
+from app import food
+from app import home
+from app import laundry
+from config import Config
+
 # from .scraper.locations import scrape_locations
 # from .scraper.menus import scrape_menus
 
@@ -22,11 +30,11 @@ cors = CORS(app)
 
 limiter = Limiter(key_func=get_remote_address)
 limiter.init_app(app)
-from app import catalog, errors, food, home, laundry
+
 print("instantiating routes...")
 app.register_blueprint(home.home_bp)
-app.register_blueprint(food.food_bp, url_prefix = "/food")
-app.register_blueprint(laundry.laundry_bp, url_prefix = "/laundry")
+app.register_blueprint(food.food_bp, url_prefix="/food")
+app.register_blueprint(laundry.laundry_bp, url_prefix="/laundry")
 
 # # TODO: get quarter end dates for current quarter
 # page = get('https://registrar.ucsc.edu/calendar/future.html')
@@ -37,5 +45,5 @@ app.register_blueprint(laundry.laundry_bp, url_prefix = "/laundry")
 # page = get('https://pisa.ucsc.edu/class_search/index.php')
 # soup = BeautifulSoup(page.text, 'lxml')
 
-app.register_blueprint(catalog.catalog_bp, url_prefix = "/catalog")
+app.register_blueprint(catalog.catalog_bp, url_prefix="/catalog")
 # TODO: maybe a calender blueprint?

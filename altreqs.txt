@@ -1,0 +1,16 @@
+flask-mail # emailer
+laundryview # laundry viewer
+
+flask-wtf # form validation
+full-fletched # instance packages
+celery database # queue workers
+flask-migrate # database migrations
+flask-sqlalchemy # database
+gunicorn # web server
+hiredis # C client for Redis
+psycopg2 # DBAPI for PostgreSQL
+redis# queue for database
+
+future implementation
+pyjwt # JSON web tokens
+flask-cas # CAS authentication
