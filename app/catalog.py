@@ -1,5 +1,3 @@
-from datetime import datetime
-from pprint import pprint
 from urllib.parse import quote_plus
 
 from aiohttp import ClientSession

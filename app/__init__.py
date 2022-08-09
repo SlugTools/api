@@ -1,12 +1,8 @@
-from datetime import datetime
-
-from bs4 import BeautifulSoup
-from deta import Deta
+# from deta import Deta
 from flask import Flask
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from requests import get
 
 from config import Config
 
@@ -24,7 +20,6 @@ limiter.init_app(app)
 # locationsDB.put(scrape_locations())
 # menusDB = deta.Base("menus")
 # menusDB.put(scrape_menus(datetime.now().strftime('%m-%d-%Y')))
-
 
 from app import catalog, errors, food, home, laundry
 

@@ -1,9 +1,7 @@
 from datetime import datetime
-from pprint import pprint
 
 from flask import abort
 from flask import Blueprint
-from flask import render_template
 from flask import request
 
 from .scraper.items import scrape_item

@@ -1,8 +1,5 @@
-from pprint import pprint
-
 from aiohttp import ClientSession
 from flask import Blueprint
-from flask import render_template
 from flask import request
 
 laundry_bp = Blueprint("laundry", __name__)

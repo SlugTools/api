@@ -1,5 +1,3 @@
-from datetime import datetime
-from pprint import pprint
 from re import findall
 from re import sub
 from unicodedata import normalize
