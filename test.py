@@ -103,23 +103,47 @@
 # winter: january (1) - march (3)
 # spring: april (4) - june (2)
 # summer: july (4) - august (4)
-from pprint import pprint
-
+# from pprint import pprint
+# from bs4 import BeautifulSoup
+# from bs4 import SoupStrainer
+# from requests import get
+# page = get("https://registrar.ucsc.edu/calendar/future.html")
+# soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer(["h3", "td"]))
+# calendar = dict.fromkeys(
+#     [i for i in range(2020, 2031)],
+#     {"fall": {}, "winter": {}, "spring": {}, "summer": {}},
+# )
+# pprint(calendar)
+# quarter = ""
+# for index, value in enumerate(soup.find_all(["h3", "td"])):
+#     if value.name == "h3":
+#         quarter = value.text.split()[0].lower()
+#         print(quarter)
+#     else:
+#         print(value.attrs)
 from bs4 import BeautifulSoup
+from bs4 import NavigableString
 from bs4 import SoupStrainer
-from requests import get
+from requests import Session
 
-page = get("https://registrar.ucsc.edu/calendar/future.html")
-soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer(["h3", "td"]))
-calendar = dict.fromkeys(
-    [i for i in range(2020, 2031)],
-    {"fall": {}, "winter": {}, "spring": {}, "summer": {}},
+session, opt = Session(), {}
+page = session.get("https://pisa.ucsc.edu/class_search/index.php")
+# FIXME: fix lxml parsing
+soup = BeautifulSoup(
+    page.text, "lxml", parse_only=SoupStrainer(["label", "select", "input"])
 )
-pprint(calendar)
-quarter = ""
-for index, value in enumerate(soup.find_all(["h3", "td"])):
-    if value.name == "h3":
-        quarter = value.text.split()[0].lower()
-        print(quarter)
-    else:
-        print(value.attrs)
+# with open('test.html', 'w') as f:
+#     f.write(soup.prettify())
+# for i in soup:
+#     opt[i['name']] = {}
+#     for j in i:
+#         if isinstance(j, NavigableString):
+#             continue
+#         opt[i['name']][j['value']] = j.text
+
+
+# from orjson import dumps
+# obj = dumps(opt)
+# with open("app/data.json", "wb") as f:
+#     f.write(obj)
+# print("done")

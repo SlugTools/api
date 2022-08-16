@@ -1,3 +1,5 @@
+from datetime import datetime
+from pprint import pprint
 from urllib.parse import quote_plus
 
 from aiohttp import ClientSession
@@ -60,65 +62,104 @@ async def get_teacher(name):
         )
 
 
-# @catalog_bp.route("/class")
-# # /catalog/class?quarter=fall&year=2022&status=all&subject=MATH&courseName=name&courseNumber=number&courseKeyword=keyword&display=10
-# # term = #
-# # status = O (open), all (all classes)
-# # subject = codes
-# # courseName = name
-# # courseNumber = number
-# # courseKeyword = keyword
-# # instructorLastName =
-# # display = 10 (default)
+# TODO: use https://ucsc.textbookx.com/institutional/index.php?action=browse#/books/3426324
+@catalog_bp.route("/class/textbooks/<class_id>")
+def get_textbooks(class_id):
+    pass
 
-# def get_course(name):
-#     if request.args.get("subject"):
-#         date = request.args.get("date")
-#     session = Session()
-#     year = int(datetime.now().strftime("%y"))
-#     # seems to be the pattern from 2013-2022
-#     # if not the case for the future, modify approach
-#     # season: month (week #) - month (week #)
-#     # fall: september (3) - december (2)
-#     # winter: january (1) - march (3)
-#     # spring: april (4) - june (2)
-#     # summer: july (4) - august (4)
-#     quarters, season = {
-#         "winter": [datetime(year, 3, 19), 2],
-#         "spring": [datetime(year, 6, 10), 2],
-#         "summer": [datetime(year, 8, 27), 2],
-#         "fall": [datetime(year, 12, 18), 4],
-#     }, 0
-#     for i in quarters:
-#         if datetime.today() <= quarters[i][0]:
-#             season += quarters[i][1]
-#     start = 2048 + ((22 - 5) * 10) + season
-#     data = {
-#         "action": "results",
-#         "binds[:term]": start,
-#         "binds[:reg_status]": "O",
-#         "binds[:subject]": "",
-#         "binds[:catalog_nbr_op]": "=",
-#         "binds[:catalog_nbr]": "",
-#         "binds[:title]": "",
-#         "binds[:instr_name_op]": "=",
-#         "binds[:instructor]": "",
-#         "binds[:ge]": "",
-#         "binds[:crse_units_op]": "=",
-#         "binds[:crse_units_from]": "",
-#         "binds[:crse_units_to]": "",
-#         "binds[:crse_units_exact]": "",
-#         "binds[:days]": "",
-#         "binds[:times]": "",
-#         "binds[:acad_career]": "",
-#         "binds[:asynch]": "A",
-#         "binds[:hybrid]": "H",
-#         "binds[:synch]": "S",
-#         "binds[:person]": "P",
-#         "rec_start": 0,
-#         "rec_dur": 10,
-#     }
-#     page = session.post("https://pisa.ucsc.edu/class_search/index.php", data=data)
-#     soup = BeautifulSoup(page.text, "lxml")
+
+# TODO: make this route a post request
+{
+    "quarter": "",
+    "year": "",
+    "session": "",
+    "status": "",
+    "subject": "",
+    "courseNumber": {"operation": "", "value": ""},
+    "courseTitleKeyword": "",
+    "instructorLastName": {"operation": "", "value": ""},
+    "generalEducation": "",
+    "courseUnits": {"operation": "", "value": ""},
+    "meetingDays": "",
+    "meetingTimes": "",
+    "courseCareer": "",
+}
+
+
+@catalog_bp.route("/class")
+def get_course():
+    year = int(datetime.now().strftime("%Y"))
+    # [curr year relative calendar, increment value]
+    quarters, hold = {
+        "winter": [datetime(year, 3, 24), 2],
+        "spring": [datetime(year, 6, 15), 4],
+        "summer": [datetime(year, 9, 1), 6],
+        "fall": [datetime(year, 12, 9), 10],
+    }, []
+    # term
+    if request.args.get("quarter"):
+        if not quarters.get(request.args.get("quarter").lower()):
+            abort(404)
+        else:
+            hold = quarters[request.args.get("quarter").lower()][1]
+    if request.args.get("year"):
+        if (
+            int(request.args.get("year")) <= year
+        ):  # FIXME: pisa could list a year ahead, not sure
+            year = int(request.args.get("year"))
+    if not request.args.get("quarter"):
+        for i in quarters:
+            # FIXME: check if this line is corrected by black
+            if datetime.today().replace(year=year) < quarters[i][0].replace(
+                year=year
+            ):  # fix year arrays
+                hold[0] = quarters[i][0]
+                hold[1] = quarters[i][1]
+                break
+    codes = {}
+    with open("app/class_codes.json", "r") as f:
+        codes = loads(f.read())  # FIXME: fix loads
+    # session
+    session = ""
+    if request.args.get("session"):
+        if codes["binds[:session_code]"].get(request.args.get("session").lower()):
+            session = codes["binds[:session_code]"][request.args.get("session").lower()]
+    session = session  # make flake8 shut up
+
+    # session = Session()
+    season, start = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
+    season = season  # make flake8 shut up
+    data = {
+        "action": "results",  # detail, next (start incrementing rec_start for second page onwards)
+        # "class_data[:STRM]": "2228",
+        # "class_data[:CLASS_NBR]": "10034",
+        "binds[:term]": start,
+        "bind[:session_code]": "",  # sessionCode if season == "summer" else ""
+        "binds[:reg_status]": "O",  # open, all
+        "binds[:subject]": "",
+        "binds[:catalog_nbr_op]": "=",
+        "binds[:catalog_nbr]": "",
+        "binds[:title]": "",
+        "binds[:instr_name_op]": "=",
+        "binds[:instructor]": "",
+        "binds[:ge]": "",
+        "binds[:crse_units_op]": "=",
+        "binds[:crse_units_from]": "",
+        "binds[:crse_units_to]": "",
+        "binds[:crse_units_exact]": "",
+        "binds[:days]": "",
+        "binds[:times]": "",
+        "binds[:acad_career]": "",
+        "binds[:asynch]": "A",
+        "binds[:hybrid]": "H",
+        "binds[:synch]": "S",
+        "binds[:person]": "P",
+        "rec_start": 0,
+        "rec_dur": 25,  # 10, 25, 50, 100
+    }
+    data = data  # make flake8 shut up
+    # page = session.post("https://pisa.ucsc.edu/class_search/index.php", data=data)
+    # soup = BeautifulSoup(page.text, "lxml")
+
 
 # @catalog_bp.route("/calendar") # make calendar endpoint

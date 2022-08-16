@@ -10,7 +10,7 @@ from .locations import scrape_locations
 
 
 # loop @ 1 day
-# i do not know how this code works though ngl
+# this gotta be like O(n^4)
 def scrape_menus(date):
     session = Session()
     locations = scrape_locations()
