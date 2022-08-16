@@ -2,30 +2,12 @@ TODO: add /person endpoint blueprint (directory search)
 TODO: add /metro endpoint https://www.scmtd.com/en/routes/schedule
 TODO: disclaimers for nutrition - question about nutrition, email bvanotte@ucsc.edu
 
-- base domain will be api.banana.com
-- blueprints will include /food, /laundry, /class, /person
-- all json
-- better to include all endpoints on one page
-
-
-bot features
-- laundry
-- let me google that for you (what who how when where why)
-- class search
-- searchup
-- directory search
-- ratemyprof api
-
-create new lib on laundry
-create new lib on ratemyprof
-
-
-alt packages
+# implement
 flask-mail # emailer
 laundryview # laundry viewer
 
+# implement later
 flask-wtf # form validation
-full-fletched # instance packages
 celery database # queue workers
 flask-migrate # database migrations
 flask-sqlalchemy # database
@@ -33,7 +15,5 @@ gunicorn # web server
 hiredis # C client for Redis
 psycopg2 # DBAPI for PostgreSQL
 redis# queue for database
-
-future implementation
 pyjwt # JSON web tokens
-flask-cas # CAS authentication
+flask-cas # CAS authentication with CBORD

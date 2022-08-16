@@ -55,9 +55,11 @@ print("instantiating blueprints...", end="")
 from app import catalog, errors, food, home, laundry
 
 app.register_blueprint(home.home_bp)
+# disclaimers for nutrition: "email bvanotte@ucsc.edu"
 app.register_blueprint(food.food_bp, url_prefix="/food")
 app.register_blueprint(laundry.laundry_bp, url_prefix="/laundry")
 app.register_blueprint(catalog.catalog_bp, url_prefix="/catalog")
+# metro endpoint: https://www.scmtd.com/en/routes/schedule
+# app.register_blueprint(catalog.catalog_bp, url_prefix="/metro")
+# TODO: maybe an instructional calender blueprint?
 print("done")
-
-# TODO: maybe a calender blueprint?
