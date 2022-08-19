@@ -86,6 +86,13 @@ def get_textbooks(class_id):
 }
 
 
+@catalog_bp.route("/class/pisa")
+def get_pisa():
+    with open("app/json/pisa.json", "r") as f:
+        codes = loads(f.read())
+    return codes
+
+
 @catalog_bp.route("/class", methods=["POST"])
 def get_course():
     # [curr year relative calendar, increment value]
