@@ -7,6 +7,7 @@ from app import app
 # might split later to accommodate all errors with different display funcs; test
 @app.errorhandler(400)
 @app.errorhandler(404)
+@app.errorhandler(405)
 @app.errorhandler(429)
 @app.errorhandler(500)
 def internal_server_error(error):

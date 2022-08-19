@@ -6,8 +6,6 @@ from flask_limiter.util import get_remote_address
 
 from config import Config
 
-# from .scraper.locations import scrape_locations
-# from .scraper.menus import scrape_menus
 
 print("instantiating app and extensions...", end="")
 app = Flask(__name__)
@@ -15,13 +13,18 @@ app.config.from_object(Config)
 cors = CORS(app)
 limiter = Limiter(key_func=get_remote_address)
 limiter.init_app(app)
+print("done")
+
+# from .scraper.locations import scrape_locations
+# from .scraper.menus import scrape_menus
+
+# print("scraping for food blueprint...", end="")
 # deta = Deta(app.config["DETA_KEY"])
 # locationsDB = deta.Base("locations")
 # locationsDB.put(scrape_locations())
 # menusDB = deta.Base("menus")
 # menusDB.put(scrape_menus(datetime.now().strftime('%m-%d-%Y')))
-print("done")
-
+# print("done")
 
 # TODO: get quarter end dates for current quarter
 # print("scraping calendar...")
@@ -29,26 +32,56 @@ print("done")
 # soup = BeautifulSoup(page.text, 'lxml', SoupStrainer(['h3', 'td']))
 # print(soup)
 
-# preload catalog class selectable options
-print("scraping catalog class website...", end="")
+print("scraping for catalog blueprint...", end="")
 from bs4 import BeautifulSoup, SoupStrainer, NavigableString
 from requests import Session
 from orjson import dumps
+from re import sub
 
-session, opt = Session(), {}
+session, cat = Session(), {}
 page = session.get("https://pisa.ucsc.edu/class_search/index.php")
-# FIXME: fix lxml parsing
-soup = BeautifulSoup(page.text, "html.parser", parse_only=SoupStrainer("select"))
+soup = BeautifulSoup(
+    page.text, "lxml", parse_only=SoupStrainer(["label", "select", "input"])
+)
+last, store, cat = "", [], {"action": {"action": ["results", "detail"]}}
 for i in soup:
-    opt[i["name"]] = {}
-    for j in i:
-        if isinstance(j, NavigableString):
-            continue
-        opt[i["name"]][j["value"]] = j.text
-obj = dumps(opt)
-# display these options to catalog site
-with open("app/class_codes.json", "wb") as f:
-    f.write(obj)
+    if i.name == "label":
+        snake = sub(r"(_|-)+", " ", i.text.strip()).title().replace(" ", "")
+        camel = snake[0].lower() + snake[1:]
+        if i.get("class") == ["col-sm-2", "form-control-label"]:
+            cat[camel], last = {}, camel
+        # FIXME: #3 courseTitleKeywords left blank
+        elif i.get("class") == ["sr-only"]:
+            cat[last]["input"] = ""
+        elif i.find("input"):
+            cat[camel] = {i.find("input")["name"]: True}
+    elif i.name == "select":
+        options = {}
+        for j in i:
+            if isinstance(j, NavigableString):
+                continue
+            options[j["value"]] = j.text
+        cat[last][i["name"]] = options
+        if "input" in cat[last]:
+            del cat[last]["input"]
+            store.append(last)
+    elif i.name == "input":
+        if i.get("type") == "text":
+            cat[store[-1]][i["name"]] = ""
+
+# counter ['sr-only'] issue
+last = ""
+for i in cat:
+    if len(cat[i]) == 0:
+        transfer = [list(cat[last].keys())[-1], list(cat[last].values())[-1]]
+        del cat[last][transfer[0]]
+        cat[i][transfer[0]] = transfer[1]
+    last = i
+
+cat["page"] = {"rec_start": 0, "rec_dur": 25}
+
+with open("app/json/pisa.json", "wb") as f:
+    f.write(dumps(cat))
 print("done")
 
 print("instantiating blueprints...", end="")

@@ -86,16 +86,19 @@ def get_textbooks(class_id):
 }
 
 
-@catalog_bp.route("/class")
+@catalog_bp.route("/class", methods=["POST"])
 def get_course():
-    year = int(datetime.now().strftime("%Y"))
     # [curr year relative calendar, increment value]
-    quarters, hold = {
-        "winter": [datetime(year, 3, 24), 2],
-        "spring": [datetime(year, 6, 15), 4],
-        "summer": [datetime(year, 9, 1), 6],
-        "fall": [datetime(year, 12, 9), 10],
-    }, []
+    year = int(datetime.now().strftime("%Y"))
+    quarters, hold = (
+        {
+            "winter": [datetime(year, 3, 24), 2],
+            "spring": [datetime(year, 6, 15), 4],
+            "summer": [datetime(year, 9, 1), 6],
+            "fall": [datetime(year, 12, 9), 10],
+        },
+        [],
+    )
     # term
     if request.args.get("quarter"):
         if not quarters.get(request.args.get("quarter").lower()):
@@ -113,22 +116,21 @@ def get_course():
             if datetime.today().replace(year=year) < quarters[i][0].replace(
                 year=year
             ):  # fix year arrays
-                hold[0] = quarters[i][0]
-                hold[1] = quarters[i][1]
+                hold.append(quarters[i][0])
+                hold.append(quarters[i][1])
                 break
+    season, start = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
     codes = {}
-    with open("app/class_codes.json", "r") as f:
+    with open("app/json/pisa.json", "r") as f:
         codes = loads(f.read())  # FIXME: fix loads
     # session
     session = ""
     if request.args.get("session"):
         if codes["binds[:session_code]"].get(request.args.get("session").lower()):
             session = codes["binds[:session_code]"][request.args.get("session").lower()]
-    session = session  # make flake8 shut up
+    season, session = season, session  # make flake8 shut up
 
     # session = Session()
-    season, start = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
-    season = season  # make flake8 shut up
     data = {
         "action": "results",  # detail, next (start incrementing rec_start for second page onwards)
         # "class_data[:STRM]": "2228",
