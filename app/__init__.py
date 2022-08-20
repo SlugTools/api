@@ -102,7 +102,7 @@ for i in comp:
             outbound[j] = comp[i][j][0]
         else:
             outbound[j] = comp[i][j]
-comp["rec_start"], comp["rec_dur"], inbound["page"] = "0", "25", 1
+outbound["rec_start"], outbound["rec_dur"], inbound["page"] = "0", "25", 1
 with open("app/json/pisa/inbound.json", "wb") as f:
     f.write(dumps(inbound))
 with open("app/json/pisa/outbound.json", "wb") as f:

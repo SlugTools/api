@@ -72,6 +72,7 @@ def get_term():
         pass
     raw.update(dict(request.args))
     year = int(datetime.now().strftime("%Y"))
+    # TODO: fetch from calendar
     quarters, hold = {
         "winter": [datetime(year, 3, 24), 2],
         "spring": [datetime(year, 6, 15), 4],
@@ -134,8 +135,10 @@ def get_textbooks(class_id):
 @catalog_bp.route("/class/inbound")
 def get_pisa():
     with open("app/json/pisa/inbound.json", "r") as f:
-        codes = loads(f.read())
-    return codes
+        inbound = loads(f.read())
+    if len(inbound) == 2:
+        abort(503)
+    return inbound
 
 
 @catalog_bp.route("/class", methods=["GET", "POST"])
@@ -148,6 +151,8 @@ def get_course():
     # [curr year relative calendar, increment value]
     with open("app/json/pisa/outbound.json", "r") as f:
         outbound = loads(f.read())
+    if len(outbound) == 3:
+        abort(503)
     return outbound
     # orig: term = 2228, session_code = "1"
     # new: term = start, session_code = ""

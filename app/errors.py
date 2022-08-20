@@ -10,6 +10,7 @@ from app import app
 @app.errorhandler(405)
 @app.errorhandler(429)
 @app.errorhandler(500)
+@app.errorhandler(503)
 def internal_server_error(error):
     split = str(error).split(":")
     return (
