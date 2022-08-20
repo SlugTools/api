@@ -1,6 +1,9 @@
 TODO: add /person endpoint blueprint (directory search)
 TODO: add /metro endpoint https://www.scmtd.com/en/routes/schedule
 TODO: disclaimers for nutrition - question about nutrition, email bvanotte@ucsc.edu
+FIXME: researched cchardet and lxml (whether to import)
+TODO: set up custom errors for abort() calls
+TODO: set up PythonAnywhere
 
 # implement
 flask-mail # emailer
