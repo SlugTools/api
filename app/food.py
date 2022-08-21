@@ -2,13 +2,16 @@ from datetime import datetime
 
 from flask import abort
 from flask import Blueprint
+from flask import render_template
 from flask import request
+from werkzeug.exceptions import HTTPException
 
 from .scraper.items import scrape_item
 from .scraper.locations import get_location
 from .scraper.locations import scrape_locations
 from .scraper.menus import get_menu
 from .scraper.menus import scrape_menus
+from app import app
 
 # import flask_monitoringdashboard as dashboard
 # dashboard.config.init_from(file='config.cfg')
@@ -68,7 +71,7 @@ def import_menu(location_id: int):
 @food_bp.route("/items/<item_id>")
 def import_item(item_id):
     response = scrape_item(item_id)
-    return response if response else abort(404)
+    return response if response else abort(204)
 
 
 # account for item IDs with fractional servings

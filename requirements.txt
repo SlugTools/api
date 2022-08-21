@@ -11,4 +11,5 @@ python-dotenv
 python-levenshtein
 requests
 round-nutrition
+sentry-sdk[flask]
 thefuzz

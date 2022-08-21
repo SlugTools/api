@@ -4,6 +4,9 @@ TODO: disclaimers for nutrition - question about nutrition, email bvanotte@ucsc.
 FIXME: researched cchardet and lxml (whether to import)
 TODO: set up custom errors for abort() calls
 TODO: set up PythonAnywhere
+TODO: configure sentry
+TODO: use markupsafe
+TODO: integrate deepsource
 
 # implement
 flask-mail # emailer

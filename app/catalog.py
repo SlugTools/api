@@ -96,10 +96,11 @@ def get_term():
                 hold.append(quarters[i][1])
                 break
     # TODO: adjust the function to align with pisa (occ. a quarter ahead)?
-    season, start = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
+    quarter, code = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
+    code += 4  # temporary alignment with pisa
     return (
-        {"code": start, "term": f"{year} {season.capitalize()} Quarter"}
-        if start >= 2048
+        {"code": code, "term": f"{year} {quarter.capitalize()} Quarter"}
+        if code >= 2048
         else abort(400, "Invalid year value.")
     )
 
@@ -136,97 +137,52 @@ def get_textbooks(class_id):
 def get_pisa():
     with open("app/json/pisa/inbound.json", "r") as f:
         inbound = loads(f.read())
-    if len(inbound) == 2:
-        abort(503)
-    return inbound
+    return inbound if inbound else abort(503)
 
 
 @catalog_bp.route("/class", methods=["GET", "POST"])
 def get_course():
-    # raw = {}
-    # try:
-    #     raw = request.get_json(force=True)
-    # except:
-    #     pass
+    raw = {}
+    try:
+        raw = request.get_json(force=True)
+    except:
+        pass
+    raw.update(dict(request.args))
     # [curr year relative calendar, increment value]
+    with open("app/json/pisa/inbound.json", "r") as f:
+        inbound = loads(f.read())
+    if not inbound:
+        abort(503)
     with open("app/json/pisa/outbound.json", "r") as f:
         outbound = loads(f.read())
-    if len(outbound) == 3:
-        abort(503)
-    return outbound
-    # orig: term = 2228, session_code = "1"
-    # new: term = start, session_code = ""
-    # term
-    # TODO: currently aligning via calendar
-    year = int(datetime.now().strftime("%Y"))
-    quarters, hold = (
-        {
-            "winter": [datetime(year, 3, 24), 2],
-            "spring": [datetime(year, 6, 15), 4],
-            "summer": [datetime(year, 9, 1), 6],
-            "fall": [datetime(year, 12, 9), 10],
-        },
-        [],
-    )
-    if request.args.get("quarter"):
-        if not quarters.get(request.args.get("quarter").lower()):
-            abort(404)
+
+    c = 0
+    for i in inbound:
+        if isinstance(inbound[i], dict):
+            for j in inbound[i]:
+                if raw.get(i, {}).get(j):
+                    if (
+                        isinstance(raw[i][j], (int, str))
+                        and str(raw[i][j]).lower() in inbound[i][j]
+                    ):
+                        outbound[c] = str(raw[i][j])
+                c += 1
+        elif isinstance(inbound[i], list):
+            if raw.get(i):
+                if isinstance(raw[i], (int, str)) and str(raw[i]).lower() in inbound[i]:
+                    outbound[c] = str(raw[i])
         else:
-            hold = quarters[request.args.get("quarter").lower()][1]
-    if request.args.get("year"):
-        if (
-            int(request.args.get("year")) <= year
-        ):  # FIXME: pisa could list a year ahead, not sure
-            year = int(request.args.get("year"))
-    if not request.args.get("quarter"):
-        for i in quarters:
-            if datetime.today().replace(year=year) < quarters[i][0].replace(year=year):
-                hold.append(quarters[i][0])
-                hold.append(quarters[i][1])
-                break
-    # FIXME: pisa displays fall in summer, adjust accordingly
-    season, start = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
-    season = season  # make flake8 shut up
-    start += 4  # align with pisa (dev)
-    codes = {}
-    with open("app/json/pisa.json", "r") as f:
-        codes = loads(f.read())  # FIXME: fix loads
-    # session
-    session = ""
-    if request.args.get("session"):
-        if codes["binds[:session_code]"].get(request.args.get("session").lower()):
-            session = codes["binds[:session_code]"][request.args.get("session").lower()]
-    data = {
-        "action": "results",  # next, detail, next (start incrementing rec_start for second page onwards)
-        # "class_data[:STRM]": "2228",
-        # "class_data[:CLASS_NBR]": "10034",
-        "binds[:term]": str(start),
-        "bind[:session_code]": "",  # sessionCode if season == "summer" else ""
-        "binds[:reg_status]": "O",  # open, all
-        "binds[:subject]": "",
-        "binds[:catalog_nbr_op]": "=",
-        "binds[:catalog_nbr]": "",
-        "binds[:title]": "",
-        "binds[:instr_name_op]": "=",
-        "binds[:instructor]": "",
-        "binds[:ge]": "",
-        "binds[:crse_units_op]": "=",
-        "binds[:crse_units_from]": "",
-        "binds[:crse_units_to]": "",
-        "binds[:crse_units_exact]": "",
-        "binds[:days]": "",
-        "binds[:times]": "",
-        "binds[:acad_career]": "",
-        "binds[:asynch]": "A",
-        "binds[:hybrid]": "H",
-        "binds[:synch]": "S",
-        "binds[:person]": "P",
-        "rec_start": 25,
-        "rec_dur": 25,  # 10, 25, 50, 100
-    }
+            if raw.get(i) and isinstance(raw[i], (int, str)):
+                outbound[c] = str(raw[i])
+        c += 1
+    # adjust page
+    if raw.get("page") and str(raw["page"]).isnumeric() and raw["page"] > 1:
+        outbound["action"] = "next"
+        outbound["rec_start"] = str(int(raw.get("page") * 25))
+    return outbound
     data = {
         "action": "detail",
-        # "class_data[:STRM]": "2218",
+        "class_data[:STRM]": "2218",
         "class_data[:CLASS_NBR]": "24373",
     }
     session = Session()

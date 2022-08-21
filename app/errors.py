@@ -1,19 +1,34 @@
+from http.client import HTTPException
+
 from flask import render_template
+from werkzeug.exceptions import Aborter
 
 from app import app
 
 
-# single file with one function
-# might split later to accommodate all errors with different display funcs; test
-@app.errorhandler(400)
-@app.errorhandler(404)
-@app.errorhandler(405)
-@app.errorhandler(429)
-@app.errorhandler(500)
-@app.errorhandler(503)
+# TODO: split to provide custom messages?
+class _204(HTTPException):
+    code, name, description = 204, "No Content", "Valid request but empty response."
+
+
+app.aborter = Aborter(extra={204: _204})
+
+
+# forcibly render 204 (NoContent)
+@app.errorhandler(_204)  # no content
+@app.errorhandler(400)  # bad request
+@app.errorhandler(404)  # not found
+@app.errorhandler(405)  # method not allowed
+@app.errorhandler(429)  # too many requests
+@app.errorhandler(500)  # internal server error
+@app.errorhandler(503)  # service unavailable
 def internal_server_error(error):
-    split = str(error).split(":")
     return (
-        render_template("error.html", title=split[0], text=split[1].strip()),
+        render_template(
+            "error.html",
+            code=error.code,
+            name=error.name,
+            description=error.description,
+        ),
         error.code,
     )
