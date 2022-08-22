@@ -57,8 +57,8 @@ page = session.get("https://pisa.ucsc.edu/class_search/index.php")
 soup = BeautifulSoup(
     page.text, "lxml", parse_only=SoupStrainer(["label", "select", "input"])
 )
-with open("testing/main.html", "w") as f:
-    f.write(soup.prettify())
+# with open("testing/main.html", "w") as f:
+#     f.write(soup.prettify())
 for i in soup:
     if i.name == "label":
         snake = sub(r"(_|-)+", " ", i.text.strip()).title().replace(" ", "")
