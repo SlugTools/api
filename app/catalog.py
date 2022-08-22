@@ -63,7 +63,7 @@ async def get_teacher(name):
         )
 
 
-@catalog_bp.route("/term", methods=["GET", "POST"])  # /term?year=2022&term=spring
+@catalog_bp.route("/term", methods=["GET", "POST"])
 def get_term():
     raw = {}
     try:
@@ -111,37 +111,16 @@ def get_textbooks(class_id):
     pass
 
 
-# {
-#     "action": [],
-#     "term": {},
-#     "session": {},
-#     "status": {},
-#     "subject": {},
-#     "courseNumber": {"operation": {}, "value": ""},
-#     "courseTitleKeyword": "",
-#     "instructorLastName": {"operation": {}, "value": ""},
-#     "generalEducation": {},
-#     "courseUnits": {"operation": {}, "from": "", "to": "", "exact": ""},
-#     "meetingDays": {},
-#     "meetingTimes": {},
-#     "courseCareer": {},
-#     "asynchronousOnline": True,
-#     "asynchronousOnline": True,
-#     "hybrid": True,
-#     "inPerson": True,
-#     "page": 1,
-# }
-
-
 @catalog_bp.route("/class/inbound")
 def get_pisa():
-    with open("app/json/pisa/inbound.json", "r") as f:
+    with open("app/data/json/pisa/inbound.json", "r") as f:
         inbound = loads(f.read())
     return inbound if inbound else abort(503)
 
 
 @catalog_bp.route("/class", methods=["GET", "POST"])
 def get_course():
+
     raw = {}
     try:
         raw = request.get_json(force=True)
@@ -149,14 +128,15 @@ def get_course():
         pass
     raw.update(dict(request.args))
     # [curr year relative calendar, increment value]
-    with open("app/json/pisa/inbound.json", "r") as f:
+    with open("app/data/json/pisa/inbound.json", "r") as f:
         inbound = loads(f.read())
     if not inbound:
         abort(503)
-    with open("app/json/pisa/outbound.json", "r") as f:
+    with open("app/data/json/pisa/outbound.json", "r") as f:
         outbound = loads(f.read())
 
     c = 0
+    keys = list(outbound.keys())
     for i in inbound:
         if isinstance(inbound[i], dict):
             for j in inbound[i]:
@@ -165,21 +145,21 @@ def get_course():
                         isinstance(raw[i][j], (int, str))
                         and str(raw[i][j]).lower() in inbound[i][j]
                     ):
-                        outbound[c] = str(raw[i][j])
-                c += 1
+                        outbound[keys[c]] = str(raw[i][j])
         elif isinstance(inbound[i], list):
             if raw.get(i):
                 if isinstance(raw[i], (int, str)) and str(raw[i]).lower() in inbound[i]:
-                    outbound[c] = str(raw[i])
+                    outbound[keys[c]] = str(raw[i])
         else:
             if raw.get(i) and isinstance(raw[i], (int, str)):
-                outbound[c] = str(raw[i])
+                outbound[keys[c]] = str(raw[i])
         c += 1
     # adjust page
-    if raw.get("page") and str(raw["page"]).isnumeric() and raw["page"] > 1:
+    if raw.get("page") and str(raw["page"]).isnumeric() and int(raw["page"]) > 1:
         outbound["action"] = "next"
-        outbound["rec_start"] = str(int(raw.get("page") * 25))
+        outbound["rec_start"] = str(str((int(raw.get("page")) - 2) * 25))
     return outbound
+    # for detail
     data = {
         "action": "detail",
         "class_data[:STRM]": "2218",
