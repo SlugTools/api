@@ -161,4 +161,5 @@ cython_debug/
 
 # Custom
 app/data/
+.github/
 testing/
