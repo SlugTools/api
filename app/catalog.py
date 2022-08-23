@@ -11,6 +11,7 @@ from flask import render_template
 from flask import request
 from orjson import loads
 from requests import Session
+from thefuzz import process
 
 catalog_bp = Blueprint("catalog", __name__)
 
@@ -65,12 +66,12 @@ async def get_teacher(name):
 
 @catalog_bp.route("/term", methods=["GET", "POST"])
 def get_term():
-    raw = {}
+    inbound = {}
     try:
-        raw = request.get_json(force=True)
+        inbound = request.get_json(force=True)
     except:
         pass
-    raw.update(dict(request.args))
+    inbound.update(dict(request.args))
     year = int(datetime.now().strftime("%Y"))
     # TODO: fetch from calendar
     quarters, hold = {
@@ -79,17 +80,20 @@ def get_term():
         "summer": [datetime(year, 9, 1), 6],
         "fall": [datetime(year, 12, 9), 10],
     }, []
-    if raw.get("quarter"):
-        if not quarters.get(raw.get("quarter").lower()):
+    if inbound.get("quarter"):
+        if not quarters.get(inbound.get("quarter").lower()):
             abort(400, "Invalid quarter value.")
         else:
-            hold = [raw.get("quarter").lower(), quarters[raw.get("quarter").lower()][1]]
-    if raw.get("year"):
+            hold = [
+                inbound.get("quarter").lower(),
+                quarters[inbound.get("quarter").lower()][1],
+            ]
+    if inbound.get("year"):
         if (
-            int(raw.get("year")) <= year
+            int(inbound.get("year")) <= year
         ):  # FIXME: pisa could list a year ahead, not sure
-            year = int(raw.get("year"))
-    if not raw.get("quarter"):
+            year = int(inbound.get("year"))
+    if not inbound.get("quarter"):
         for i in quarters:
             if datetime.today().replace(year=year) < quarters[i][0].replace(year=year):
                 hold.append(i)
@@ -111,53 +115,81 @@ def get_textbooks(class_id):
     pass
 
 
-@catalog_bp.route("/class/inbound")
+@catalog_bp.route("/class/template")
 def get_pisa():
-    with open("app/data/json/pisa/inbound.json", "r") as f:
-        inbound = loads(f.read())
-    return inbound if inbound else abort(503)
+    with open("app/data/json/pisa/template.json", "r") as f:
+        template = loads(f.read())
+    return template if template else abort(503)
 
 
 @catalog_bp.route("/class", methods=["GET", "POST"])
 def get_course():
-
-    raw = {}
+    inbound = {}
     try:
-        raw = request.get_json(force=True)
+        inbound = request.get_json(force=True)
     except:
         pass
-    raw.update(dict(request.args))
+    inbound.update(dict(request.args))
     # [curr year relative calendar, increment value]
-    with open("app/data/json/pisa/inbound.json", "r") as f:
-        inbound = loads(f.read())
-    if not inbound:
-        abort(503)
+    with open("app/data/json/pisa/template.json", "r") as f:
+        template = loads(f.read())
+    # TODO: enable case insensitivity for inbound headers
+    # modified = template.copy()
+    # for i in modified:
+    #     if isinstance(modified[i], dict):
+    #         for j in modified:
+    #             if isinstance(modified[j], dict):
+    #                 if modified[j].get("name") == inbound.get(i):
+    #                     modified[i] = modified[j]
+    #                     break
+    # template = [i.lower() for i in template for j in] if template else abort(503)
     with open("app/data/json/pisa/outbound.json", "r") as f:
         outbound = loads(f.read())
-
-    c = 0
+    c, extract = 0, ()
     keys = list(outbound.keys())
-    for i in inbound:
-        if isinstance(inbound[i], dict):
-            for j in inbound[i]:
-                if raw.get(i, {}).get(j):
-                    if (
-                        isinstance(raw[i][j], (int, str))
-                        and str(raw[i][j]).lower() in inbound[i][j]
+    # TODO: abort with 500 for invalid types, or use default?
+    # TODO: adjust ratio threshold for fuzzy matching
+    # FIXME: operation keys not getting fuzzy matches properly
+    # TODO: integrate "detail" and skip templating
+    for i in template:
+        if isinstance(template[i], dict) and len(template[i]) < 5:
+            for j in template[i]:
+                if isinstance(template[i][j], dict):
+                    if inbound.get(i, {}).get(j):
+                        extract = process.extractOne(
+                            str(inbound[i][j]), list(template[i][j].keys())
+                        )
+                        print(extract)
+                        if isinstance(inbound[i][j], (int, str)) and extract[1] > 85:
+                            outbound[keys[c]] = extract[0]
+                            c += 1
+                else:
+                    if inbound.get(i, {}).get(j) and isinstance(
+                        inbound[i][j], (int, str)
                     ):
-                        outbound[keys[c]] = str(raw[i][j])
-        elif isinstance(inbound[i], list):
-            if raw.get(i):
-                if isinstance(raw[i], (int, str)) and str(raw[i]).lower() in inbound[i]:
-                    outbound[keys[c]] = str(raw[i])
+                        outbound[keys[c]] = str(inbound[i][j])
+                        c += 1
+        elif isinstance(template[i], list):
+            if inbound.get(i):
+                extract = process.extractOne(str(inbound[i]), list(template[i].keys()))
+                print(extract)
+                if isinstance(inbound[i], (int, str)) and extract[1] > 85:
+                    outbound[keys[c]] = extract[0]
         else:
-            if raw.get(i) and isinstance(raw[i], (int, str)):
-                outbound[keys[c]] = str(raw[i])
+            if inbound.get(i):
+                extract = process.extractOne(str(inbound[i]), list(template[i].keys()))
+                print(extract)
+                if isinstance(inbound[i], (int, str)) and extract[1] > 85:
+                    outbound[keys[c]] = extract[0]
         c += 1
     # adjust page
-    if raw.get("page") and str(raw["page"]).isnumeric() and int(raw["page"]) > 1:
+    if (
+        inbound.get("page")
+        and str(inbound["page"]).isnumeric()
+        and int(inbound["page"]) > 1
+    ):
         outbound["action"] = "next"
-        outbound["rec_start"] = str(str((int(raw.get("page")) - 2) * 25))
+        outbound["rec_start"] = str(str((int(inbound.get("page")) - 2) * 25))
     return outbound
     # for detail
     data = {
@@ -174,3 +206,4 @@ def get_course():
 
 
 # @catalog_bp.route("/calendar") # make calendar endpoint
+# @catalog_bp.route("/classrooms") # make classroom endpoint

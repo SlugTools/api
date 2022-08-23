@@ -4,9 +4,10 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from sentry_sdk import init
-from sentry_sdk.integrations.flask import FlaskIntegration
 
 from config import Config
+
+# from sentry_sdk.integrations.flask import FlaskIntegration
 
 print("instantiating app and extensions...", end="")
 app = Flask(__name__)
@@ -16,13 +17,13 @@ limiter = Limiter(key_func=get_remote_address)
 limiter.init_app(app)
 print("done")
 
-print("initiating sentry...", end="")
-init(
-    dsn=app.config["SENTRY_SDK_DSN"],
-    integrations=[FlaskIntegration()],
-    traces_sample_rate=1.0,
-)
-print("done")
+# print("initiating sentry...", end="")
+# init(
+#     dsn=app.config["SENTRY_SDK_DSN"],
+#     integrations=[FlaskIntegration()],
+#     traces_sample_rate=1.0,
+# )
+# print("done")
 
 # from .scraper.locations import scrape_locations
 # from .scraper.menus import scrape_menus
@@ -41,7 +42,7 @@ print("done")
 # soup = BeautifulSoup(page.text, 'lxml', SoupStrainer(['h3', 'td']))
 # print(soup)
 
-print("scraping pisa outbound headers...", end="")
+print("scraping pisa headers...", end="")
 from bs4 import BeautifulSoup, SoupStrainer, NavigableString
 from requests import Session
 from orjson import dumps
@@ -91,20 +92,20 @@ for i in comp:
         del comp[last][transfer[0]]
         comp[i][transfer[0]] = transfer[1]
     last = i
-print("building pisa inbound headers...", end="")
-inbound = {}
+print("building pisa headers...", end="")
+template = {}
 for i in comp:
     if len(comp[i]) != 1:
-        inbound[i] = {}
+        template[i] = {}
         for j in comp[i]:
             if j[:-1].split("_")[-1] == "op":
-                inbound[i]["operation"] = comp[i][j]
+                template[i]["operation"] = comp[i][j]
             elif j[:-1].split("_")[-1] == "nbr" or "_" not in j:
-                inbound[i]["value"] = comp[i][j]
+                template[i]["value"] = comp[i][j]
             else:
-                inbound[i][j[:-1].split("_")[-1]] = comp[i][j]
+                template[i][j[:-1].split("_")[-1]] = comp[i][j]
     else:
-        inbound[i] = comp[i][list(comp[i].keys())[0]]
+        template[i] = comp[i][list(comp[i].keys())[0]]
 outbound = {}
 for i in comp:
     for j in comp[i]:
@@ -114,11 +115,11 @@ for i in comp:
             outbound[j] = comp[i][j][0]
         else:
             outbound[j] = comp[i][j]
-inbound["page"], outbound["rec_start"], outbound["rec_dur"] = 1, "0", "25"
-if len(inbound) == 2:
-    inbound, outbound = None, None
-with open("app/data/json/pisa/inbound.json", "wb") as f:
-    f.write(dumps(inbound))
+template["page"], outbound["rec_start"], outbound["rec_dur"] = 1, "0", "25"
+if len(template) == 2:
+    template, outbound = None, None
+with open("app/data/json/pisa/template.json", "wb") as f:
+    f.write(dumps(template))
 with open("app/data/json/pisa/outbound.json", "wb") as f:
     f.write(dumps(outbound))
 print("done")

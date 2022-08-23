@@ -195,7 +195,8 @@ def scrape_locations():
     # streetFood uses https://financial.ucsc.edu/Pages/Food_Trucks.aspx
     # unable to scrape through soap POST request
     # options like requests_html, html2pdf, pdfkit, etc. not viable
-    # FIXME: find non-intensive method of scraping; solutions below?
+    # FIXME: find non-intensive method of scraping streetFood
+    # possible solutions:
     # - request data from public repl hosting selenium scraping code
     # - try screenshot and ocring webpage on a loops
     # try ratemyprof repo method, simple get requests
@@ -210,14 +211,6 @@ def scrape_locations():
             matches[temp[index]] = []
         else:
             matches[list(matches.keys())[-1]].append(value)
-    # pprint(matches, sort_dicts=False)
-
-    # for k, v in matches.items():
-    #     print(k.name)
-    #     for i in v:
-    #         print(f'{i}\n')
-    #     print()
-
     for k, v in matches.items():
         unmanaged["other"].append(
             {
@@ -230,9 +223,6 @@ def scrape_locations():
                 "hours": v[1].text[7:],
             }
         )
-    # pprint(unmanaged, sort_dicts=False)
-
-    # master = {'diningHalls': {}, 'butteries': {}}
     master = {
         # managed by UCSC Dining
         "managed": {"diningHalls": {}, "butteries": {}},
@@ -243,7 +233,6 @@ def scrape_locations():
         master["managed"][
             "diningHalls" if "hall" in managed[i]["name"].lower() else "butteries"
         ][i] = managed[i]
-
     return master
 
 
