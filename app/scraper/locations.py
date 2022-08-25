@@ -9,8 +9,6 @@ from requests import Session
 from thefuzz import fuzz
 
 
-# this func is heavy so limit scrape calls to once a day
-# FIXME: incorporate waitz process into another func, since this func can't be called frequently
 def scrape_locations():
     session = Session()
     managed = {}
@@ -56,7 +54,7 @@ def scrape_locations():
                 managed[i]["name"].lower()[:-1] in j.text.lower()
                 and "closed" not in j.text.lower()
             ):
-                # FIXME: only serves perk coffee bars; go for global approach
+                # FIXME: only serves perk coffee bars; try global approach
                 if ratio == 52:  # detects for perk bar (phys sci building)
                     isMultiple[0] = True
                 isMultiple[1].append(j)
@@ -155,7 +153,7 @@ def scrape_locations():
                     "subLocations": None,
                     "trends": None,
                 }
-                # TODO: very scuffed approach, try to repair
+                # if it works, it works
                 if ratio_list[max_ratio][0]["bestLocations"]:
                     if ratio_list[max_ratio][0]["subLocs"]:
                         managed[i]["occupation"]["subLocations"] = []
@@ -236,12 +234,10 @@ def scrape_locations():
     return master
 
 
-# pprint(get_locations(), sort_dicts = False)
-
 # process @ request (no loop)
-# TODO: create function after implementing db
 # def update_waitz():
-#     master = get_locations()
+# ...
+
 
 # imported from parent function
 def get_location(location_id: int):

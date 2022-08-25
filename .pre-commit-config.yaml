@@ -1,5 +1,6 @@
 # TODO: add markdown hook
 repos:
+  # TODO: integrate with PDM
   # - repo: https://github.com/floatingpurr/sync_with_pdm
   #   rev: 0.1.0
   #   hooks:
@@ -10,6 +11,9 @@ repos:
     hooks:
     - id: check-added-large-files
     - id: check-docstring-first
+    - id: check-json
+    - id: pretty-format-json
+      args: ["--autofix", "--no-sort-keys"]
     - id: check-toml
     - id: check-yaml
     - id: end-of-file-fixer

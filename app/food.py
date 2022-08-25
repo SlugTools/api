@@ -27,6 +27,7 @@ def home():
     return "<h1>Welcome to Food!</h1>"
 
 
+# TODO: update with waitz data upon request
 @food_bp.route("/locations")
 def import_locations():
     return scrape_locations()

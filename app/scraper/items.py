@@ -11,7 +11,6 @@ from round_nutrition import Main
 
 # process at request; consider making a db for all items (not efficient)
 # sync with db and implement checks
-# TODO: make contents federally compliant
 def scrape_item(item_id: string):
     session = Session()
     url = session.get("https://nutrition.sa.ucsc.edu/")
@@ -106,7 +105,7 @@ def scrape_item(item_id: string):
     pattern = rf"'({'|'.join(keywords)})'\s*([^'*]+)"
     matches = dict(findall(pattern, complete))
     matches = {k: v.strip() for k, v in matches.items()}
-    # FIXME: current bypass for 'Potassium' KeyError
+    # FIXME: current bypass for 'Potassium' KeyError; find alt
     copy = {}
     for item in keywords:
         try:
@@ -120,7 +119,7 @@ def scrape_item(item_id: string):
         temp = matches[list(matches.keys())[index]]
         # fixed '- - -' value issue (example item id = 400387*2*01)
         temp = temp if any(i.isdigit() for i in temp) else f"0{temp.split()[-1]}"
-        # TODO: keep as int, str, or add "kcal" unit?
+        # currently int; switch to str or str + " kcal"?
         master["nutrition"]["amountPerServing"][key] = (
             temp if key != "calories" else int(temp)
         )

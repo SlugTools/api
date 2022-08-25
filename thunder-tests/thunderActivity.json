@@ -1,0 +1,332 @@
+[
+  {
+    "_id": "48364e8e-c72b-4e8d-851b-7f1b388a118a",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://pisa.ucsc.edu/class_search/index.php",
+    "url": "https://pisa.ucsc.edu/class_search/index.php",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T06:06:22.598Z",
+    "modified": "2022-08-23T06:07:51.562Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\r\n  \"action\": \"detail\",\r\n  \"class_data[:STRM]\": \"2228\",\r\n  \"class_data[:CLASS_NBR]\": \"10495\",\r\n  \"binds[:term]\": \"2228\",\r\n  \"binds[:session_code]\": \"\",\r\n  \"binds[:reg_status]\": \"O\",\r\n  \"binds[:subject]\": \"\",\r\n  \"binds[:catalog_nbr_op]\": \"=\",\r\n  \"binds[:catalog_nbr]\": \"\",\r\n  \"binds[:title]\": \"\",\r\n  \"binds[:instr_name_op]\": \"=\",\r\n  \"binds[:instructor]\": \"\",\r\n  \"binds[:ge]\": \"\",\r\n  \"binds[:crse_units_op]\": \"=\",\r\n  \"binds[:crse_units_from]\": \"\",\r\n  \"binds[:crse_units_to]\": \"\",\r\n  \"binds[:crse_units_exact]\": \"\",\r\n  \"binds[:days]\": \"\",\r\n  \"binds[:times]\": \"\",\r\n  \"binds[:acad_career]\": \"\",\r\n  \"binds[:asynch]\": \"A\",\r\n  \"binds[:hybrid]\": \"H\",\r\n  \"binds[:synch]\": \"S\",\r\n  \"binds[:person]\": \"P\",\r\n  \"rec_start\": \"0\",\r\n  \"rec_dur\": \"25\"\r\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "32ded942-f902-4958-bf88-f711a88d28fd",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://pisa.ucsc.edu/class_search/index.php",
+    "url": "https://pisa.ucsc.edu/class_search/index.php",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-23T06:07:59.326Z",
+    "modified": "2022-08-23T06:10:22.146Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "formdata",
+      "raw": "",
+      "form": [
+        {
+          "name": "action",
+          "value": "detail"
+        },
+        {
+          "name": "class_data[:CLASS_NBR]",
+          "value": "10495"
+        },
+        {
+          "name": "class_data[:STRM]",
+          "value": "2228"
+        }
+      ]
+    },
+    "tests": []
+  },
+  {
+    "_id": "26210a3e-ad27-4817-9bda-43f2fb6d8e44",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/class/detail",
+    "url": "localhost:5000/class/detail",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-23T06:22:33.059Z",
+    "modified": "2022-08-23T06:22:33.120Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"number\": \"10495\"\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "00073a68-e2b4-477a-bf75-1aca81e418a9",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/detail",
+    "url": "localhost:5000/catalog/class/detail",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-23T06:22:40.076Z",
+    "modified": "2022-08-24T00:38:34.305Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"number\": 1234\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "a4def265-baaa-4350-a171-bea58ea8ad92",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class",
+    "url": "localhost:5000/catalog/class",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-23T06:34:11.706Z",
+    "modified": "2022-08-24T00:31:15.938Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"number\": false\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "b99599c3-0e1b-4a4a-98df-d1859d98d7c1",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://www.thunderclient.com/catalog/class",
+    "url": "https://www.thunderclient.com/catalog/class",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T20:02:57.196Z",
+    "modified": "2022-08-23T20:03:36.104Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "ba977115-429a-4898-9857-2e266f0adaab",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class",
+    "url": "localhost:5000/catalog/class",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T20:03:46.859Z",
+    "modified": "2022-08-23T20:40:55.554Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "0b2950ba-cd53-4a05-8c1c-f34e0a806e81",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/template",
+    "url": "localhost:5000/catalog/class/template",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T20:41:00.120Z",
+    "modified": "2022-08-23T20:41:00.154Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "b13fa0f2-141d-4c0b-aa62-03a52f6a0200",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/search/template",
+    "url": "localhost:5000/catalog/class/search/template",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T20:41:09.432Z",
+    "modified": "2022-08-24T01:06:52.712Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"action\": \"detaail\"\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "69844d2a-cccd-4824-95f1-8c47a9b3fc1e",
+    "colId": "history",
+    "containerId": "",
+    "name": "http://slugtools-api.herokuapp.com/catalog/class/template",
+    "url": "http://slugtools-api.herokuapp.com/catalog/class/template",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T20:42:52.146Z",
+    "modified": "2022-08-23T20:42:54.892Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "5a13873f-f747-455f-8291-7ce80c7b2b5e",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/detail",
+    "url": "localhost:5000/catalog/class/detail",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T22:03:43.599Z",
+    "modified": "2022-08-24T00:38:36.695Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"number\": 1234\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "e41bcb2b-228b-4aa1-8a60-9e9358b67b0f",
+    "colId": "history",
+    "containerId": "",
+    "name": "searchlocalhost:5000/catalog/class/detail",
+    "url": "searchlocalhost:5000/catalog/class/detail",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T22:04:27.501Z",
+    "modified": "2022-08-23T22:04:29.779Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"numer\": 12345\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "9f2049c2-3bfb-47fd-be98-5ba148792968",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/search",
+    "url": "localhost:5000/catalog/class/search",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-23T22:04:32.557Z",
+    "modified": "2022-08-24T19:28:17.830Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\r\n    \"action\": \"results\",\r\n    \"term\": \"2102\",\r\n    \"session\": \"\",\r\n    \"status\": \"All\",\r\n    \"subject\": \"matH\",\r\n    \"courseNumber\": {\"operation\": \"contains\", \"value\": \"\"}\r\n    \"courseTitleKeyword\": \"\",\r\n    \"instructorLastName\": {\"operation\": \"=\", \"value\": \"\"}\r\n    \"generalEducation\": \"\",\r\n    \"courseUnits\": {\"operation\": \"<=\", \"value\": \"\"}\r\n    \"meetingDays\": \"\",\r\n    \"meetingTimes\": \"\",\r\n    \"courseCareer\": \"\",\r\n    \"asynchronousOnline\": false,\r\n    \"hybrid\": true,\r\n    \"synchronousOnline\": false,\r\n    \"inPerson\": true,\r\n    \"page\": 3\r\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "992853d5-c05c-4c39-9553-92674e723793",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/search",
+    "url": "localhost:5000/catalog/class/search",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-24T00:31:30.111Z",
+    "modified": "2022-08-25T05:53:50.778Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"courseNumber\": {\"value\": \"1\"},\n  \"status\": \"All\",\n  \"page\": {\"number\": 21, \"results\": 10}\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "37d307d8-18c6-422b-a704-d744b5ba1b94",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/search/template",
+    "url": "localhost:5000/catalog/class/search/template",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-24T00:31:51.398Z",
+    "modified": "2022-08-24T00:31:51.408Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"number\": false\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "d02c694c-9fb1-4957-90ef-360e513878a8",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/class/search/",
+    "url": "localhost:5000/catalog/class/search/",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-24T01:06:55.507Z",
+    "modified": "2022-08-24T01:06:55.524Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"action\": \"detaail\"\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "8e922c58-1d4c-475e-876d-3491507e72f3",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://www.thunderclient.com/welcome",
+    "url": "https://www.thunderclient.com/welcome",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-24T18:07:23.957Z",
+    "modified": "2022-08-24T18:07:24.261Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "8ed6b90d-20f8-439e-a7a0-9be0f16cb2e5",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://pisa.ucsc.edu/class_search/",
+    "url": "https://pisa.ucsc.edu/class_search/",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-24T20:12:28.541Z",
+    "modified": "2022-08-24T20:13:36.689Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\r\n    \"action\": \"results\",\r\n    \"binds[:term]\": \"2228\",\r\n    \"binds[:session_code]\": \"\",\r\n    \"binds[:reg_status]\": \"O\",\r\n    \"binds[:subject]\": \"\",\r\n    \"binds[:catalog_nbr_op]\": \"=\",\r\n    \"binds[:catalog_nbr]\": \"\",\r\n    \"binds[:title]\": \"\",\r\n    \"binds[:instr_name_op]\": \"=\",\r\n    \"binds[:instructor]\": \"\",\r\n    \"binds[:ge]\": \"\",\r\n    \"binds[:crse_units_op]\": \"=\",\r\n    \"binds[:crse_units_from]\": \"\",\r\n    \"binds[:crse_units_to]\": \"\",\r\n    \"binds[:crse_units_exact]\": \"\",\r\n    \"binds[:days]\": \"\",\r\n    \"binds[:times]\": \"\",\r\n    \"binds[:acad_career]\": \"\",\r\n    \"binds[:asynch]\": \"A\",\r\n    \"binds[:hybrid]\": \"H\",\r\n    \"binds[:synch]\": \"S\",\r\n    \"binds[:person]\": \"P\",\r\n    \"rec_start\": \"0\",\r\n    \"rec_dur\": \"25\"\r\n}",
+      "form": []
+    },
+    "tests": []
+  }
+]

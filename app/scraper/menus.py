@@ -28,7 +28,6 @@ def scrape_menus(date):
             if new.status_code == 500:
                 return None
             short_soup = BeautifulSoup(new.text, "lxml")
-            # TODO: no data available or empty meal containers, develop conditional for latter
             status = short_soup.find("div", {"class": "shortmenuinstructs"})
             if status.text == "No Data Available":
                 master[i][j] = None
@@ -88,7 +87,7 @@ def scrape_menus(date):
                 else:
                     meal = list(menu["short"].keys())[-1]
                     course = list(menu["short"][meal].keys())[-1]
-                    # FIXME: cheese pizza issue; current fix is just a error bypass
+                    # FIXME: 'Cheese Pizza' KeyError; current fix is just a error bypass
                     # normalize() just removes the '\xa0' that comes at the end of each j.text
                     try:
                         menu["short"][meal][course][

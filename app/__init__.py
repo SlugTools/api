@@ -9,7 +9,7 @@ from config import Config
 
 # from sentry_sdk.integrations.flask import FlaskIntegration
 
-print("instantiating app and extensions...", end="")
+print("initializing app and extensions...", end="")
 app = Flask(__name__)
 app.config.from_object(Config)
 cors = CORS(app)
@@ -46,6 +46,7 @@ print("scraping pisa headers...", end="")
 from bs4 import BeautifulSoup, SoupStrainer, NavigableString
 from requests import Session
 from orjson import dumps
+from orjson import OPT_INDENT_2
 from re import sub
 
 session, last, store, comp = (
@@ -58,15 +59,14 @@ page = session.get("https://pisa.ucsc.edu/class_search/index.php")
 soup = BeautifulSoup(
     page.text, "lxml", parse_only=SoupStrainer(["label", "select", "input"])
 )
-# with open("testing/main.html", "w") as f:
-#     f.write(soup.prettify())
+# TODO: try to find a way to capture outbound headers of a requested url's post request
+# FIXME: GE top level key has weird escape chars
 for i in soup:
     if i.name == "label":
         snake = sub(r"(_|-)+", " ", i.text.strip()).title().replace(" ", "")
         camel = snake[0].lower() + snake[1:]
         if i.get("class") == ["col-sm-2", "form-control-label"]:
             comp[camel], last = {}, camel
-        # FIXME: courseTitleKeywords left blank
         elif i.get("class") == ["sr-only"]:
             comp[last]["input"] = ""
         elif i.find("input"):
@@ -84,7 +84,7 @@ for i in soup:
     elif i.name == "input":
         if i.get("type") == "text":
             comp[store[-1]][i["name"]] = ""
-# most sane approach to counter empty courseTitleKeywords
+# fill empty items with the last element of the last item
 last = ""
 for i in comp:
     if len(comp[i]) == 0:
@@ -92,7 +92,8 @@ for i in comp:
         del comp[last][transfer[0]]
         comp[i][transfer[0]] = transfer[1]
     last = i
-print("building pisa headers...", end="")
+print("done")
+print("building catalog headers...", end="")
 template = {}
 for i in comp:
     if len(comp[i]) != 1:
@@ -106,7 +107,12 @@ for i in comp:
                 template[i][j[:-1].split("_")[-1]] = comp[i][j]
     else:
         template[i] = comp[i][list(comp[i].keys())[0]]
-outbound = {}
+modes = {}
+for i in list(template.keys())[-4:]:
+    modes[i] = True
+    del template[i]
+template = template | {"instructionModes": modes}
+template["page"], outbound = {"number": 1, "results": 25}, {}
 for i in comp:
     for j in comp[i]:
         if isinstance(comp[i][j], dict):
@@ -115,7 +121,8 @@ for i in comp:
             outbound[j] = comp[i][j][0]
         else:
             outbound[j] = comp[i][j]
-template["page"], outbound["rec_start"], outbound["rec_dur"] = 1, "0", "25"
+# TODO: adjust rec_dur
+outbound["rec_start"], outbound["rec_dur"] = 0, 25
 if len(template) == 2:
     template, outbound = None, None
 with open("app/data/json/pisa/template.json", "wb") as f:
@@ -124,7 +131,28 @@ with open("app/data/json/pisa/outbound.json", "wb") as f:
     f.write(dumps(outbound))
 print("done")
 
-print("instantiating blueprints...", end="")
+# print("generating test headers...", end="")
+# test = {}
+# for i in template:
+#     if isinstance(template[i], dict):
+#         test[i] = list(template[i].keys())[0]
+#     elif isinstance(template[i], list):
+#         test[i] = template[i][0]
+#     else:
+#         test[i] = template[i]
+# with open("testing/main.json", "wb") as f:
+#     f.write(dumps(test, option=OPT_INDENT_2))
+# print("done")
+
+# print("converting json to form-data...", end="")
+# s = ""
+# for i in outbound:
+#     s += f"{i}: {outbound[i]}\n"
+# with open ("testing/main.txt", "w") as f:
+#     f.write(s)
+# print("done")
+
+print("registering blueprints...", end="")
 from app import catalog, errors, food, home, laundry
 
 app.register_blueprint(home.home_bp)
