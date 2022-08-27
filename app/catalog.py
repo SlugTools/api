@@ -16,17 +16,28 @@ from orjson import loads
 from requests import Session
 from thefuzz.process import extractOne
 
-catalog_bp = Blueprint("catalog", __name__)
+from app import condense_received
+
+catalog = Blueprint("catalog", __name__)
 
 
-@catalog_bp.route("/")
-def home():
-    return "<h1>Welcome to Catalog!</h1>"
+@catalog.route("/")
+def index():
+    """Provides academically relative data for campus instructional offerings."""
+    return redirect("/#catalog")
+
+
+@catalog.route("/teacher")
+def forward_teacher():
+    return redirect("/#catalog-teacher")
 
 
 # TODO: https://github.com/Nobelz/RateMyProfessorAPI has a ~2s slower implementation; push a PR
-@catalog_bp.route("/teacher/<name>")
+# FIXME: fetch __ref from somewhere
+# https://campusdirectory.ucsc.edu/cd_simple
+@catalog.route("/teacher/<name>")
 async def get_teacher(name):
+    """Get public data for a registered university member."""
     # session = Session()
     # sid possibly prone to change
     async with ClientSession() as session:
@@ -67,14 +78,10 @@ async def get_teacher(name):
         )
 
 
-@catalog_bp.route("/term", methods=["GET", "POST"])
+@catalog.route("/term", methods=["GET", "POST"])
 def get_term():
-    inbound = {}
-    try:
-        inbound = request.get_json(force=True)
-    except:
-        pass
-    inbound.update(dict(request.args))
+    """Get a code for an academic term to use a catalog search. Specify a quarter with <code>quarter</code> and/or a year with <code>year</code>."""
+    inbound = condense_received(request)
     year = int(datetime.now().strftime("%Y"))
     # TODO: fetch from calendar
     quarters, hold = {
@@ -112,26 +119,27 @@ def get_term():
     )
 
 
+@catalog.route("/class")
+def forward_class():
+    return redirect("/#catalog-class")
+
+
+@catalog.route("/class/textbooks")
+def forward_textbooks():
+    return redirect("/#catalog-class-textbooks")
+
+
 # TODO: use https://ucsc.textbookx.com/institutional/index.php?action=browse#/books/3426324
-@catalog_bp.route("/class/textbooks/<class_id>")
+@catalog.route("/class/textbooks/<id>")
 def get_textbooks(class_id):
+    """Get items/materials for a specific course/class number."""
     pass
 
 
-@catalog_bp.route("/class")
-def get_redirect():
-    # TODO: point to cataog/class section
-    return redirect("/")
-
-
-@catalog_bp.route("/class/detail", methods=["GET", "POST"])
+@catalog.route("/class/detail", methods=["GET", "POST"])
 def get_course():
-    inbound, session = {}, Session()
-    try:
-        inbound = request.get_json(force=True)
-    except:
-        pass
-    inbound.update(dict(request.args))
+    """Get details for a specific course/class. Specify a term with <code>term</code> (optional) and a number with <code>number</code>."""
+    inbound, session = condense_received(request), Session()
     term = (
         inbound["term"]
         if inbound.get("term")
@@ -159,21 +167,11 @@ def get_course():
     return {"success": True}
 
 
-@catalog_bp.route("/class/search/template")
-def get_search_template():
-    with open("app/data/json/pisa/template.json", "r") as f:
-        template = loads(f.read())
-    return template if template else abort(503)
-
-
-@catalog_bp.route("/class/search", methods=["GET", "POST"])
+@catalog.route("/class/search", methods=["GET", "POST"])
+@catalog.route("/course/search", methods=["GET", "POST"])
 def search_course():
-    inbound = {}
-    try:
-        inbound = request.get_json(force=True)
-    except:
-        pass
-    inbound.update(dict(request.args))
+    """Get class/course search results for a variety of indicators accessible via <code><a href="/catalog/class/search/template">/template</a></code>."""
+    inbound = condense_received(request)
     # [curr year relative calendar, increment value]
     with open("app/data/json/pisa/template.json", "r") as f:
         template = loads(f.read())
@@ -281,27 +279,27 @@ def search_course():
             ),
         )
         body = i.find("div", attrs={"class": "panel-body"}).find("div")
-        number = body.find("div", attrs={"class": "col-xs-6 col-sm-3"})
-        instructor = (
-            body.find_all("div", attrs={"class": "col-xs-6 col-sm-3"})[1]
-            .get_text(separator="\n")
-            .replace(",", ", ")
-            .split("\n")
-        )
+        use = body.find_all("div", attrs={"class": "col-xs-6 col-sm-3"})
+        instructor = use[1].get_text(separator="\n").replace(",", ", ").split("\n")
         instructor = [i.strip() for i in instructor]
         mode = body.find_all("div", attrs={"class": "col-xs-6 col-sm-3 hide-print"})[
             2
         ].text.split(":")[1]
-        classes[int(number.find("a").text)] = {
-            "detail": number.find("a")["href"],
+        # FIXME: why is the first element empty
+        print(use[2].text.split(" "))
+        classes[int(use[0].find("a").text)] = {
+            "detail": use[0].find("a")["href"],
             "subject": head.split(" ")[0],
             "number": head.split(" ")[1],
             "section": head.split(" ")[3],
             "name": " ".join(head.split(" ")[4:]).replace(":", ": ").replace(",", ", "),
-            "instructor": instructor[1:]
-            if len(instructor) > 2
-            else instructor[1],  # can be array
-            "mode": mode,  # mode
+            "instructor": instructor[1:] if len(instructor) > 2 else instructor[1],
+            # TODO: different name: enrolled, enrollment, capacity, spots, etc.
+            "seats": {
+                "taken": int(use[2].text.split(" ")[1]),
+                "capacity": int(use[2].text.split(" ")[3]),
+            },
+            "mode": mode,
             # "location": "", # can be array
             # "time": "", # can be array, can be cancelled
             # "seats": { # TODO: maybe change name
@@ -320,6 +318,7 @@ def search_course():
     )
     left = total - int(outbound["rec_dur"]) * number
     display = left if left < int(outbound["rec_dur"]) else int(outbound["rec_dur"])
+    display = total if total > display * total else display
     return {
         "page": {
             "number": number,
@@ -329,5 +328,13 @@ def search_course():
     }
 
 
-# @catalog_bp.route("/calendar") # make calendar endpoint
-# @catalog_bp.route("/classrooms") # make classroom endpoint
+@catalog.route("/class/search/template")
+def get_search_template():
+    """Get the template to build your request for <code><a href="/catalog/class/search">/search</a></code>."""
+    with open("app/data/json/pisa/template.json", "r") as f:
+        template = loads(f.read())
+    return template if template else abort(503)
+
+
+# @catalog.route("/calendar") # make calendar endpoint
+# @catalog.route("/classrooms") # make classroom endpoint

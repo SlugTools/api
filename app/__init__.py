@@ -1,8 +1,11 @@
 # from deta import Deta
+import os
+
 from flask import Flask
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from newrelic.agent import initialize
 from sentry_sdk import init
 
 from config import Config
@@ -17,12 +20,18 @@ limiter = Limiter(key_func=get_remote_address)
 limiter.init_app(app)
 print("done")
 
-# print("initiating sentry...", end="")
+# print("initiating analytics...", end="")
+# initialize(os.path.join(app.config["ROOT_DIR"], "newrelic.ini"))
 # init(
 #     dsn=app.config["SENTRY_SDK_DSN"],
 #     integrations=[FlaskIntegration()],
 #     traces_sample_rate=1.0,
 # )
+# print("done")
+
+# print("initiating admin dashboard...", end="")
+# import flask_monitoringdashboard as dashboard
+# dashboard.config.init_from(file='config.cfg')
 # print("done")
 
 # from .scraper.locations import scrape_locations
@@ -122,7 +131,7 @@ for i in comp:
         else:
             outbound[j] = comp[i][j]
 # TODO: adjust rec_dur
-outbound["rec_start"], outbound["rec_dur"] = 0, 25
+outbound["rec_start"], outbound["rec_dur"] = "0", "25"
 if len(template) == 2:
     template, outbound = None, None
 with open("app/data/json/pisa/template.json", "wb") as f:
@@ -152,14 +161,32 @@ print("done")
 #     f.write(s)
 # print("done")
 
-print("registering blueprints...", end="")
-from app import catalog, errors, food, home, laundry
+print("defining helper functions...", end="")
 
-app.register_blueprint(home.home_bp)
-# disclaimers for nutrition: "email bvanotte@ucsc.edu"
-app.register_blueprint(food.food_bp, url_prefix="/food")
-app.register_blueprint(laundry.laundry_bp, url_prefix="/laundry")
-app.register_blueprint(catalog.catalog_bp, url_prefix="/catalog")
+
+def condense_received(request):
+    inbound = {}
+    try:
+        inbound = request.get_json(force=True)
+    except:
+        pass
+    inbound.update(dict(**request.args))
+    return inbound
+
+
+print("done")
+
+print("registering blueprints...", end="")
+from app import errors
+from app.catalog import catalog
+from app.food import food
+from app.home import home
+from app.laundry import laundry
+
+app.register_blueprint(home)
+app.register_blueprint(food, url_prefix="/food")
+app.register_blueprint(laundry, url_prefix="/laundry")
+app.register_blueprint(catalog, url_prefix="/catalog")
 # metro endpoint: https://www.scmtd.com/en/routes/schedule
 # app.register_blueprint(catalog.catalog_bp, url_prefix="/metro")
 # TODO: maybe an instructional calender blueprint?

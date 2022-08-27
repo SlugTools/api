@@ -8,7 +8,11 @@ from app import app
 
 # TODO: split to provide custom messages?
 class _204(HTTPException):
-    code, name, description = 204, "No Content", "Valid request but empty response."
+    code, name, description = (
+        204,
+        "No Content",
+        "The client request has succeeded but no content is to be returned.",
+    )
 
 
 app.aborter = Aborter(extra={204: _204})

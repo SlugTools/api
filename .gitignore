@@ -161,4 +161,5 @@ cython_debug/
 
 # Custom
 .github/
+newrelic.ini
 testing/

@@ -1,28 +1,28 @@
 from aiohttp import ClientSession
 from flask import Blueprint
+from flask import redirect
 from flask import request
 
-laundry_bp = Blueprint("laundry", __name__)
+laundry = Blueprint("laundry", __name__)
 
 
-@laundry_bp.route("/")
-def home():
-    return "<h1>Welcome to Laundry!</h1>"
+@laundry.route("/")
+def index():
+    """Provides residential laundry facility data."""
+    return redirect("/#laundry")
 
 
-@laundry_bp.route("/main")
+@laundry.route("/main")
 async def main():
+    """Get residential laundry facility data."""
     async with ClientSession() as session:
-        resp = await session.get(
-            "https://www.laundryview.com/api/c_room?loc=9632", ssl=False
-        )
+        resp = await session.get("https://www.laundryview.com/api/c_room?loc=9632")
         campus = await resp.json()
         final = {}
         for i in range(len(campus["room_data"])):
             id = campus["room_data"][i]["laundry_room_location"]
             resp = await session.get(
-                f"https://www.laundryview.com/api/currentRoomData?location={id}",
-                ssl=False,
+                f"https://www.laundryview.com/api/currentRoomData?location={id}"
             )
             location = await resp.json()
             individual = {"dryers": [], "washers": []}

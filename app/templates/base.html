@@ -1,4 +1,20 @@
-API NAVBAR GOES HERE
-{% block content %}
-{% endblock %}
-API FOOTER GOES HERE
+<!DOCTYPE html>
+<html>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+  <body>
+    <header>
+      <a href="/">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}"/>
+        <h2>SlugTools API</h2>
+      </a>
+    </header>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer>
+      <p>For any inquiries, contact <a href="mailto:admin@slug.tools">admin@slug.tools</a>.</p>
+    </footer>
+  </body>
+</html>

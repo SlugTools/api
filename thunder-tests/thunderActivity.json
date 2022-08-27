@@ -248,12 +248,12 @@
     "method": "POST",
     "sortNum": 0,
     "created": "2022-08-24T00:31:30.111Z",
-    "modified": "2022-08-25T05:53:50.778Z",
+    "modified": "2022-08-25T06:25:59.138Z",
     "headers": [],
     "params": [],
     "body": {
       "type": "json",
-      "raw": "{\n  \"courseNumber\": {\"value\": \"1\"},\n  \"status\": \"All\",\n  \"page\": {\"number\": 21, \"results\": 10}\n}",
+      "raw": "{}",
       "form": []
     },
     "tests": []
@@ -327,6 +327,86 @@
       "raw": "{\r\n    \"action\": \"results\",\r\n    \"binds[:term]\": \"2228\",\r\n    \"binds[:session_code]\": \"\",\r\n    \"binds[:reg_status]\": \"O\",\r\n    \"binds[:subject]\": \"\",\r\n    \"binds[:catalog_nbr_op]\": \"=\",\r\n    \"binds[:catalog_nbr]\": \"\",\r\n    \"binds[:title]\": \"\",\r\n    \"binds[:instr_name_op]\": \"=\",\r\n    \"binds[:instructor]\": \"\",\r\n    \"binds[:ge]\": \"\",\r\n    \"binds[:crse_units_op]\": \"=\",\r\n    \"binds[:crse_units_from]\": \"\",\r\n    \"binds[:crse_units_to]\": \"\",\r\n    \"binds[:crse_units_exact]\": \"\",\r\n    \"binds[:days]\": \"\",\r\n    \"binds[:times]\": \"\",\r\n    \"binds[:acad_career]\": \"\",\r\n    \"binds[:asynch]\": \"A\",\r\n    \"binds[:hybrid]\": \"H\",\r\n    \"binds[:synch]\": \"S\",\r\n    \"binds[:person]\": \"P\",\r\n    \"rec_start\": \"0\",\r\n    \"rec_dur\": \"25\"\r\n}",
       "form": []
     },
+    "tests": []
+  },
+  {
+    "_id": "240f9d02-5452-4809-b004-462c6dab9d6b",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://slugtools-api.herokuapp.com/catalog/class/searchlocalhost:5000/catalog/class/search",
+    "url": "https://slugtools-api.herokuapp.com/catalog/class/searchlocalhost:5000/catalog/class/search",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-25T06:02:30.230Z",
+    "modified": "2022-08-25T06:02:30.611Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"courseNumber\": {\"value\": \"1\"},\n  \"status\": \"All\",\n  \"page\": {\"number\": 21, \"results\": 10}\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "6df63d16-03bf-4bb5-9650-b53cbb9667af",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://slugtools-api.herokuapp.com/catalog/class/search",
+    "url": "https://slugtools-api.herokuapp.com/catalog/class/search",
+    "method": "POST",
+    "sortNum": 0,
+    "created": "2022-08-25T06:02:34.364Z",
+    "modified": "2022-08-25T06:02:58.667Z",
+    "headers": [],
+    "params": [],
+    "body": {
+      "type": "json",
+      "raw": "{\n  \"courseNumber\": {\"value\": \"19a\"},\n  \"status\": \"All\"\n}",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "a4f4da1b-b0c0-4781-b4d4-ddd534205bee",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/term",
+    "url": "localhost:5000/catalog/term",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2022-08-26T05:53:39.437Z",
+    "modified": "2022-08-26T05:53:39.564Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "02bea26b-382a-4fcd-92fe-ca52da13d97e",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/term",
+    "url": "localhost:5000/catalog/term",
+    "method": "OPTIONS",
+    "sortNum": 0,
+    "created": "2022-08-26T05:53:43.468Z",
+    "modified": "2022-08-26T05:53:43.480Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "6d7d9a13-f9ff-49f5-92e6-5ed995542e1a",
+    "colId": "history",
+    "containerId": "",
+    "name": "localhost:5000/catalog/term",
+    "url": "localhost:5000/catalog/term",
+    "method": "HEAD",
+    "sortNum": 0,
+    "created": "2022-08-26T05:53:54.627Z",
+    "modified": "2022-08-26T05:53:54.636Z",
+    "headers": [],
+    "params": [],
     "tests": []
   }
 ]

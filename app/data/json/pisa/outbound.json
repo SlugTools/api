@@ -21,6 +21,6 @@
   "binds[:hybrid]": "H",
   "binds[:synch]": "S",
   "binds[:person]": "P",
-  "rec_start": 0,
-  "rec_dur": 25
+  "rec_start": "0",
+  "rec_dur": "25"
 }
