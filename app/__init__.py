@@ -1,49 +1,68 @@
-# from deta import Deta
 import os
+from pprint import pprint
 
+from deta import Deta
 from flask import Flask
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from newrelic.agent import initialize
 from sentry_sdk import init
 
 from config import Config
 
-# from sentry_sdk.integrations.flask import FlaskIntegration
+# from newrelic.agent import initialize
+
 
 print("initializing app and extensions...", end="")
 app = Flask(__name__)
 app.config.from_object(Config)
 cors = CORS(app)
 limiter = Limiter(key_func=get_remote_address)
-limiter.init_app(app)
+limiter.init_app(app)  # TODO: add rate limit
 print("done")
+
+# from sentry_sdk.integrations.flask import FlaskIntegration
+# from sentry_sdk.integrations.httpx import HttpxIntegration
 
 # print("initiating analytics...", end="")
 # initialize(os.path.join(app.config["ROOT_DIR"], "newrelic.ini"))
 # init(
 #     dsn=app.config["SENTRY_SDK_DSN"],
-#     integrations=[FlaskIntegration()],
+#     integrations=[FlaskIntegration(), HttpxIntegration()],
 #     traces_sample_rate=1.0,
 # )
 # print("done")
+from re import sub
+from unicodedata import normalize
 
-# print("initiating admin dashboard...", end="")
-# import flask_monitoringdashboard as dashboard
-# dashboard.config.init_from(file='config.cfg')
-# print("done")
+print("defining helper functions...", end="")
 
-# from .scraper.locations import scrape_locations
-# from .scraper.menus import scrape_menus
 
-# print("scraping for food blueprint...", end="")
-# deta = Deta(app.config["DETA_KEY"])
-# locationsDB = deta.Base("locations")
-# locationsDB.put(scrape_locations())
-# menusDB = deta.Base("menus")
-# menusDB.put(scrape_menus(datetime.now().strftime('%m-%d-%Y')))
-# print("done")
+def condense_args(request, lower=False):
+    inbound = {}
+    try:
+        inbound = request.get_json(force=True)
+    except:
+        pass
+    inbound.update(dict(**request.args))
+    return {k.lower(): v for k, v in inbound.items()} if lower else inbound
+
+
+def readify(text):
+    return sub(" +", " ", normalize("NFKD", text).replace("\n", "")).strip()
+
+
+print("done")
+
+from .start.locations import scrape_locations
+from .start.menus import scrape_menus
+
+print("scraping locations and menus...", end="")
+deta = Deta(app.config["DETA_KEY"])
+foodDB = deta.Base("food")
+foodDB.put(scrape_locations(), "locations")
+foodDB.put(scrape_menus(), "menus")
+print("done")
 
 # TODO: get quarter end dates for current quarter
 # print("scraping calendar...")
@@ -51,20 +70,16 @@ print("done")
 # soup = BeautifulSoup(page.text, 'lxml', SoupStrainer(['h3', 'td']))
 # print(soup)
 
-print("scraping pisa headers...", end="")
 from bs4 import BeautifulSoup, SoupStrainer, NavigableString
-from requests import Session
-from orjson import dumps
-from orjson import OPT_INDENT_2
-from re import sub
+from httpx import get
 
-session, last, store, comp = (
-    Session(),
+print("scraping pisa headers...", end="")
+last, store, comp = (
     "",
     [],
     {"action": {"action": ["results", "detail"]}},  # next is adjusted by page
 )
-page = session.get("https://pisa.ucsc.edu/class_search/index.php")
+page = get("https://pisa.ucsc.edu/class_search/index.php")
 soup = BeautifulSoup(
     page.text, "lxml", parse_only=SoupStrainer(["label", "select", "input"])
 )
@@ -134,12 +149,12 @@ for i in comp:
 outbound["rec_start"], outbound["rec_dur"] = "0", "25"
 if len(template) == 2:
     template, outbound = None, None
-with open("app/data/json/pisa/template.json", "wb") as f:
-    f.write(dumps(template))
-with open("app/data/json/pisa/outbound.json", "wb") as f:
-    f.write(dumps(outbound))
-print("done")
+# catalogDB = deta.Base("catalog")
+# catalogDB.put(template, "template")
+# catalogDB.put(outbound, "outbound")
+print("error")
 
+# from orjson import OPT_INDENT_2
 # print("generating test headers...", end="")
 # test = {}
 # for i in template:
@@ -161,28 +176,16 @@ print("done")
 #     f.write(s)
 # print("done")
 
-print("defining helper functions...", end="")
-
-
-def condense_received(request):
-    inbound = {}
-    try:
-        inbound = request.get_json(force=True)
-    except:
-        pass
-    inbound.update(dict(**request.args))
-    return inbound
-
 
 print("done")
 
-print("registering blueprints...", end="")
 from app import errors
 from app.catalog import catalog
 from app.food import food
 from app.home import home
 from app.laundry import laundry
 
+print("registering blueprints...", end="")
 app.register_blueprint(home)
 app.register_blueprint(food, url_prefix="/food")
 app.register_blueprint(laundry, url_prefix="/laundry")

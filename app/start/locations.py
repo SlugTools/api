@@ -1,18 +1,19 @@
 from re import findall
-from re import sub
-from unicodedata import normalize
 from urllib.parse import parse_qs
 from urllib.parse import quote_plus
 
 from bs4 import BeautifulSoup
-from requests import Session
+from httpx import Client
 from thefuzz import fuzz
 
+from app import readify
 
+
+# TODO: loop @ 1 day
+# FIXME: fix porter market issue
 def scrape_locations():
-    session = Session()
-    managed = {}
-    page = session.get("https://nutrition.sa.ucsc.edu/")
+    client, managed = Client(), {}
+    page = client.get("https://nutrition.sa.ucsc.edu/")
     soup = BeautifulSoup(page.text, "lxml")
     # initial return setup; parses only from menu page
     for i in soup.find_all("a"):
@@ -31,7 +32,7 @@ def scrape_locations():
                 "occupation": None,
             }
 
-    page = session.get("https://dining.ucsc.edu/eat/")
+    page = client.get("https://dining.ucsc.edu/eat/")
     soup = BeautifulSoup(page.text, "lxml-xml")
     # groups headers and child elements (location info page)
     temp, matches = soup.find_all(["h2", "li"]), {}
@@ -62,10 +63,8 @@ def scrape_locations():
         li = matches[ratio_list[max_ratio]]
 
         # waitz api processing
-        response = session.get("https://waitz.io/live/ucsc")
-        data = response.json()
-        response = session.get("https://waitz.io/compare/ucsc")
-        comp_data = response.json()
+        data = client.get("https://waitz.io/live/ucsc").json()
+        comp_data = client.get("https://waitz.io/compare/ucsc").json()
         ratio_list = {}
         for j in data["data"]:
             # current compromise to get past the name - ratio problem
@@ -86,37 +85,21 @@ def scrape_locations():
                 managed[i]["phone"] = []
             for j in isMultiple[1]:
                 managed[i]["description"].append(
-                    sub(
-                        " +",
-                        " ",
-                        normalize(
-                            "NFKD", matches[j].find("p").text.split("✆")[0].strip()
-                        ),
-                    )
+                    readify(matches[j].find("p").text.split("✆")[0])
                 )
                 # https://developers.google.com/maps/documentation/urls/get-started; maybe parse web embed url
                 managed[i]["location"].append(
                     f"https://www.google.com/maps/dir/?api=1&destination={quote_plus(j.text.strip())}"
                 )
                 managed[i]["phone"].append(
-                    sub(
-                        " +",
-                        " ",
-                        normalize(
-                            "NFKD", matches[j].find("p").text.split("✆")[1].strip()
-                        ),
-                    )
+                    readify(matches[j].find("p").text.split("✆")[1])
                 )
         else:
-            managed[i]["description"] = sub(
-                " +", " ", normalize("NFKD", li.find("p").text.split("✆")[0].strip())
-            )
+            managed[i]["description"] = readify(li.find("p").text.split("✆")[0])
             managed[i][
                 "location"
             ] = f'https://www.google.com/maps/dir/?api=1&destination={quote_plus(managed[i]["name"])}'
-            managed[i]["phone"] = sub(
-                " +", " ", normalize("NFKD", li.find("p").text.split("✆")[1].strip())
-            )
+            managed[i]["phone"] = readify(li.find("p").text.split("✆")[1])
             # TODO: implement 'hours' scraping
             # resp = session.get(f'https://dining.ucsc.edu/eat/#{soup.find(li.find("a")["href"])}')
             # test = BeautifulSoup(resp.text, 'lxml')
@@ -196,11 +179,11 @@ def scrape_locations():
     # FIXME: find non-intensive method of scraping streetFood
     # possible solutions:
     # - request data from public repl hosting selenium scraping code
-    # - try screenshot and ocring webpage on a loops
+    # - try screenshot and ocring webpage on a loop
     # try ratemyprof repo method, simple get requests
     unmanaged = {"streetFood": [], "other": []}
-    page = session.get("https://financial.ucsc.edu/Pages/Food_Trucks.aspx")
-    page = session.get("https://basicneeds.ucsc.edu/resources/on-campus-food.html")
+    page = client.get("https://financial.ucsc.edu/Pages/Food_Trucks.aspx")
+    page = client.get("https://basicneeds.ucsc.edu/resources/on-campus-food.html")
     soup = BeautifulSoup(page.text, "lxml")
     # groups headers and child elements (location info page)
     temp, matches = soup.find_all(["h3", "p", "ul"])[13:-5], {}
@@ -213,7 +196,7 @@ def scrape_locations():
         unmanaged["other"].append(
             {
                 "name": k.text,
-                "description": normalize("NFKD", "".join([i.text for i in v[2:]]))
+                "description": readify("".join([i.text for i in v[2:]]))
                 .strip()
                 .replace("\n", " ")
                 .replace("    ", ". "),
@@ -232,17 +215,3 @@ def scrape_locations():
             "diningHalls" if "hall" in managed[i]["name"].lower() else "butteries"
         ][i] = managed[i]
     return master
-
-
-# process @ request (no loop)
-# def update_waitz():
-# ...
-
-
-# imported from parent function
-def get_location(location_id: int):
-    locations = scrape_locations()
-    for i in locations:
-        for j in locations[i]:
-            if j["id"] == location_id:
-                return j

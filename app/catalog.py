@@ -4,7 +4,6 @@ from re import sub
 from unicodedata import normalize
 from urllib.parse import quote_plus
 
-from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 from flask import abort
@@ -12,11 +11,15 @@ from flask import Blueprint
 from flask import redirect
 from flask import request
 from flask import url_for
+from httpx import Client
+from httpx import get
+from httpx import post
 from orjson import loads
-from requests import Session
 from thefuzz.process import extractOne
 
-from app import condense_received
+from app import catalogDB
+from app import condense_args
+from app import readify
 
 catalog = Blueprint("catalog", __name__)
 
@@ -28,60 +31,57 @@ def index():
 
 
 @catalog.route("/teacher")
-def forward_teacher():
+def teacher_to_home():
     return redirect("/#catalog-teacher")
 
 
-# TODO: https://github.com/Nobelz/RateMyProfessorAPI has a ~2s slower implementation; push a PR
+# TODO: https://githrequestsub.com/Nobelz/RateMyProfessorAPI has a ~2s slower implementation; push a PR
 # FIXME: fetch __ref from somewhere
 # https://campusdirectory.ucsc.edu/cd_simple
 @catalog.route("/teacher/<name>")
-async def get_teacher(name):
+def teacher(name):
     """Get public data for a registered university member."""
     # session = Session()
     # sid possibly prone to change
-    async with ClientSession() as session:
-        page = await session.get(
-            f"https://www.ratemyprofessors.com/search/teachers?query={quote_plus(name)}&sid=1078"
-        )
-        soup = BeautifulSoup(
-            await page.text(), "lxml", parse_only=SoupStrainer("script")
-        )
-        content = {}
+    page = get(
+        f"https://www.ratemyprofessors.com/search/teachers?query={quote_plus(name)}&sid=1078"
+    )
+    soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("script"))
+    content = {}
 
-        for i in soup:
-            if "_ = " in i.text:
-                content = loads(i.text[: i.text.index(";")].split("_ = ")[1])
-                # using first match at index 4 (relative to sid query parameter)
-                # if pushing pr to api library, access reference IDs to make list of teachers
-                content = content[list(content.keys())[4]]
-                for i in content:
-                    if isinstance(content[i], int) and content[i] <= 0:
-                        content[i] = None
-                break
+    for i in soup:
+        if "_ = " in i.text:
+            content = loads(i.text[: i.text.index(";")].split("_ = ")[1])
+            # using first match at index 4 (relative to sid query parameter)
+            # if pushing pr to api library, access reference IDs to make list of teachers
+            content = content[list(content.keys())[4]]
+            for i in content:
+                if isinstance(content[i], int) and content[i] <= 0:
+                    content[i] = None
+            break
 
-        # __ref possibly prone to change
-        return (
-            {
-                "name": f"{content['firstName']} {content['lastName']}",
-                "department": content["department"],
-                "rating": content["avgRating"],
-                "ratings": content["numRatings"],
-                "difficulty": content["avgDifficulty"],
-                "wouldRetake": round(content["wouldTakeAgainPercent"])
-                if content["wouldTakeAgainPercent"]
-                else None,
-                "page": f"https://www.ratemyprofessors.com/ShowRatings.jsp?tid={content['legacyId']}",
-            }
-            if "id" in content and content["school"]["__ref"] == "U2Nob29sLTEwNzg="
-            else abort(404)
-        )
+    # __ref possibly prone to change
+    return (
+        {
+            "name": f"{content['firstName']} {content['lastName']}",
+            "department": content["department"],
+            "rating": content["avgRating"],
+            "ratings": content["numRatings"],
+            "difficulty": content["avgDifficulty"],
+            "wouldRetake": round(content["wouldTakeAgainPercent"])
+            if content["wouldTakeAgainPercent"]
+            else None,
+            "page": f"https://www.ratemyprofessors.com/ShowRatings.jsp?tid={content['legacyId']}",
+        }
+        if "id" in content and content["school"]["__ref"] == "U2Nob29sLTEwNzg="
+        else abort(404)
+    )
 
 
 @catalog.route("/term", methods=["GET", "POST"])
-def get_term():
+def term():
     """Get a code for an academic term to use a catalog search. Specify a quarter with <code>quarter</code> and/or a year with <code>year</code>."""
-    inbound = condense_received(request)
+    inbound = condense_args(request, True)
     year = int(datetime.now().strftime("%Y"))
     # TODO: fetch from calendar
     quarters, hold = {
@@ -120,7 +120,7 @@ def get_term():
 
 
 @catalog.route("/class")
-def forward_class():
+def class_to_home():
     return redirect("/#catalog-class")
 
 
@@ -137,13 +137,13 @@ def get_textbooks(class_id):
 
 
 @catalog.route("/class/detail", methods=["GET", "POST"])
-def get_course():
+def class_detail():
     """Get details for a specific course/class. Specify a term with <code>term</code> (optional) and a number with <code>number</code>."""
-    inbound, session = condense_received(request), Session()
+    inbound, client = condense_args(request, True), Client()
     term = (
         inbound["term"]
         if inbound.get("term")
-        else session.get(f"http://127.0.0.1:5000{url_for('catalog.get_term')}").json()[
+        else client.get(f"http://127.0.0.1:5000{url_for('catalog.term')}").json()[
             "code"
         ]
     )
@@ -160,24 +160,50 @@ def get_course():
         "class_data[:STRM]": term,
         "class_data[:CLASS_NBR]": number,
     }
-    return outbound
-    page = session.post("https://pisa.ucsc.edu/class_search/index.php", data=outbound)
-    soup = BeautifulSoup(page.text, "lxml")
-    print(soup)
+    page = post("https://pisa.ucsc.edu/class_search/index.php", data=outbound)
+    soup = BeautifulSoup(
+        page.text,
+        "lxml",
+        parse_only=SoupStrainer(
+            "div", attrs={"class": ["col-xs-12", "col-xs-6", "panel panel-default row"]}
+        ),
+    )
+    head = readify(soup.find("div", attrs={"class": "col-xs-12"}).text)
+    master = {
+        "title": {
+            "subject": head.split(" ")[0],
+            "number": head.split(" ")[1],
+            "section": head.split(" ")[3],
+            "name": " ".join(head.split(" ")[4:]),
+        },
+        "links": {
+            "detail": soup.find_all("div", attrs={"class": "col-xs-6"})[1].find("a")[
+                "href"
+            ],
+            "textbooks": soup.find_all("div", attrs={"class": "col-xs-6"})[1].find_all(
+                "a"
+            )[1]["href"],
+        },
+        "term": readify(soup.find("div", attrs={"class": "col-xs-6"}).text),
+    }
+    return master
+    with open("testing/main.html", "w") as f:
+        f.write(soup.prettify())
+    for i in soup:
+        print(i)
+        print("##########################################")
     return {"success": True}
 
 
 @catalog.route("/class/search", methods=["GET", "POST"])
 @catalog.route("/course/search", methods=["GET", "POST"])
-def search_course():
+def class_search():
     """Get class/course search results for a variety of indicators accessible via <code><a href="/catalog/class/search/template">/template</a></code>."""
-    inbound = condense_received(request)
+    inbound = condense_args(request)
     # [curr year relative calendar, increment value]
-    with open("app/data/json/pisa/template.json", "r") as f:
-        template = loads(f.read())
+    template = catalogDB.get("template")
     template = template if template else abort(503)
-    with open("app/data/json/pisa/outbound.json", "r") as f:
-        outbound = loads(f.read())
+    outbound = catalogDB.get("outbound")
     c, keys = 0, list(outbound.keys())
     # TODO: abort with 500 for invalid types, or use default?
     # TODO: adjust ratio threshold for fuzzy matching
@@ -257,8 +283,8 @@ def search_course():
                 if isinstance(inbound[i], (int, str)):
                     outbound[keys[c]] = inbound[i]
             c += 1
-    session, classes = Session(), {}
-    page = session.post("https://pisa.ucsc.edu/class_search/index.php", data=outbound)
+    classes = {}
+    page = post("https://pisa.ucsc.edu/class_search/index.php", data=outbound)
     soup = BeautifulSoup(
         page.text,
         "lxml",
@@ -267,16 +293,11 @@ def search_course():
         ),
     )
     for i in soup.find_all("div", attrs={"class": "panel panel-default row"}):
-        head = sub(
-            " +",
-            " ",
-            normalize(
-                "NFKD",
-                i.find("div", attrs={"class": "panel-heading panel-heading-custom"})
-                .find("h2")
-                .find("a")
-                .text,
-            ),
+        head = readify(
+            i.find("div", attrs={"class": "panel-heading panel-heading-custom"})
+            .find("h2")
+            .find("a")
+            .text
         )
         body = i.find("div", attrs={"class": "panel-body"}).find("div")
         use = body.find_all("div", attrs={"class": "col-xs-6 col-sm-3"})
@@ -288,11 +309,15 @@ def search_course():
         # FIXME: why is the first element empty
         print(use[2].text.split(" "))
         classes[int(use[0].find("a").text)] = {
-            "detail": use[0].find("a")["href"],
-            "subject": head.split(" ")[0],
-            "number": head.split(" ")[1],
-            "section": head.split(" ")[3],
-            "name": " ".join(head.split(" ")[4:]).replace(":", ": ").replace(",", ", "),
+            "link": use[0].find("a")["href"],
+            "title": {
+                "subject": head.split(" ")[0],
+                "number": head.split(" ")[1],
+                "section": head.split(" ")[3],
+                "name": " ".join(head.split(" ")[4:])
+                .replace(":", ": ")
+                .replace(",", ", "),
+            },
             "instructor": instructor[1:] if len(instructor) > 2 else instructor[1],
             # TODO: different name: enrolled, enrollment, capacity, spots, etc.
             "seats": {
@@ -329,10 +354,9 @@ def search_course():
 
 
 @catalog.route("/class/search/template")
-def get_search_template():
+def class_search_template():
     """Get the template to build your request for <code><a href="/catalog/class/search">/search</a></code>."""
-    with open("app/data/json/pisa/template.json", "r") as f:
-        template = loads(f.read())
+    template = catalogDB.get("template")
     return template if template else abort(503)
 
 

@@ -14,9 +14,9 @@ def index():
     map, functions, rules = {}, app.view_functions, app.url_map.iter_rules()
     color, hold = {"GET": "forestgreen", "POST": "dodgerblue"}, []
     for i, j in zip(functions, rules):
-        print(i)
-        print(j)
-        print()
+        # print(i)
+        # print(j)
+        # print()
         split = i.split(".")
         if "." in i and split[0] not in ["static", "home"]:
             if split[1] == "index":

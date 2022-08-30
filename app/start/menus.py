@@ -1,29 +1,29 @@
 # from app import app # laod base url
-from unicodedata import normalize
+from datetime import datetime
 from urllib.parse import parse_qs
 from urllib.parse import quote_plus
 
 from bs4 import BeautifulSoup
-from requests import Session
+from httpx import Client
 
 from .locations import scrape_locations
+from app import readify
 
 
-# loop @ 1 day
-# this gotta be like O(n^4)
-def scrape_menus(date):
-    session = Session()
-    locations = scrape_locations()
-    master = {}
+# TODO: loop @ 1 day
+def scrape_menus(date=datetime.now().strftime("%m-%d-%Y")):
+    client, locations, master = (
+        Client(base_url="https://nutrition.sa.ucsc.edu/"),
+        scrape_locations(),
+        {},
+    )
     for i in locations["managed"]:
         master[i] = {}
-        # FIXME: just leave accessing as 'managed', or loop another time for consistency
         for j in locations["managed"][i]:
             menu = {"short": {}, "long": {}}
             # short scraping
-            new = session.get("https://nutrition.sa.ucsc.edu/")
-            new = session.get(
-                f'https://nutrition.sa.ucsc.edu/shortmenu.aspx?locationNum={j:02d}&locationName={quote_plus(locations["managed"][i][j]["name"])}&naFlag=1&dtdate={date}'
+            _, new = client.get(""), client.get(
+                f'shortmenu.aspx?locationNum={j:02d}&locationName={quote_plus(locations["managed"][i][j]["name"])}&naFlag=1&dtdate={date}'
             )
             if new.status_code == 500:
                 return None
@@ -38,7 +38,7 @@ def scrape_menus(date):
             for k in short_soup.find_all("a"):
                 # TODO: do a faster check
                 if k["href"].startswith("longmenu"):
-                    new = session.get("https://nutrition.sa.ucsc.edu/" + k["href"])
+                    new = client.get(k["href"])
                     long_soup = BeautifulSoup(new.text, "lxml")
                     meal = parse_qs(k["href"])["mealName"][0]
                     menu["long"][meal] = {}
@@ -57,10 +57,8 @@ def scrape_menus(date):
                         elif m["class"][0] == "longmenucoldispname":
                             course = list(menu["long"][meal].keys())[-1]
                             item_id = m.find("input").attrs["value"]
-                            menu["long"][meal][course][
-                                normalize("NFKD", m.text).strip()
-                            ] = item_id
-                            item_list[normalize("NFKD", m.text).strip()] = item_id
+                            menu["long"][meal][course][readify(m.text)] = item_id
+                            item_list[readify(m.text)] = item_id
                         elif (
                             m.text.strip() != ""
                         ):  # else doesn't account for course row price whitespace
@@ -90,9 +88,9 @@ def scrape_menus(date):
                     # FIXME: 'Cheese Pizza' KeyError; current fix is just a error bypass
                     # normalize() just removes the '\xa0' that comes at the end of each j.text
                     try:
-                        menu["short"][meal][course][
-                            normalize("NFKD", k.text).strip()
-                        ] = item_list[normalize("NFKD", k.text).strip()]
+                        menu["short"][meal][course][readify(k.text)] = item_list[
+                            readify(k.text)
+                        ]
                     except:
                         pass
             # short and long dict attachment

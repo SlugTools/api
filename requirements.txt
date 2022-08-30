@@ -1,15 +1,15 @@
 beautifulsoup4
 cchardet
-deta[async]==1.1.0a2
+deta # TODO: use async version
+flask # TODO: migrate to quart
 flask-cors
 flask-limiter
-flask[async]
+flask-monitoringdashboard
 gunicorn
+httpx
 lxml
-newrelic
 orjson
 python-dotenv
-requests
 round-nutrition
-sentry-sdk[flask]
+sentry-sdk[flask] # TODO: use quart after migration
 thefuzz[speedup]
