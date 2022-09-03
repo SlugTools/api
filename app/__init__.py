@@ -19,6 +19,7 @@ app.config.from_object(Config)
 cors = CORS(app)
 # set up limits
 limiter = Limiter(app, key_func=get_remote_address)  # TODO: add rate limit
+app.config["DETA_KEY"] = "b0in2rd1_7UG1NqGPLQwZZS9E83dqh2nHCG7vGa5Q"
 print("done")
 
 # from sentry_sdk.integrations.flask import FlaskIntegration
