@@ -18,7 +18,6 @@ class _204(HTTPException):
 app.aborter = Aborter(extra={204: _204})
 
 
-# forcibly render 204 (NoContent)
 @app.errorhandler(_204)  # no content (success)
 @app.errorhandler(400)  # bad request
 @app.errorhandler(404)  # not found

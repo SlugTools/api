@@ -26,7 +26,7 @@ def index():
 # TODO: update with waitz data upon request
 @food.route("/locations")
 def locations():
-    """Get data for all on-campus dining/eatery locations."""
+    """Retrieve data for all on-campus dining/eatery locations."""
     # TODO: update waitz data
     locations = foodDB.get("locations")
     del locations["key"]
@@ -35,7 +35,7 @@ def locations():
 
 @food.route("/locations/<int:id>")
 def import_location(id: int):
-    """Get today's locational data for an on-campus dining/eatery location."""
+    """Retrieve today's locational data for an on-campus dining/eatery location."""
     # TODO: update waitz data
     locations = foodDB.get("locations")
     del locations["key"]
@@ -48,7 +48,7 @@ def import_location(id: int):
 
 @food.route("/menus", methods=["GET"])
 def menus():
-    """Get today's menu data for all on-campus and university-managed dining/eatery locations"""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
+    """Retrieve today's menu data for all on-campus and university-managed dining/eatery locations"""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
     # TODO: implement different day menus
     menus = foodDB.get("menus")
     del menus["key"]
@@ -57,7 +57,7 @@ def menus():
 
 @food.route("/menus/<int:id>")
 def menu(id: int):
-    """Get today's menu data for an on-campus and university-managed dining/eatery location."""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
+    """Retrieve today's menu data for an on-campus and university-managed dining/eatery location."""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
     # TODO: implement different day menus
     menus = foodDB.get("menus")
     del menus["key"]
@@ -70,10 +70,8 @@ def menu(id: int):
 
 def scrape_item(id):
     client = Client(base_url="https://nutrition.sa.ucsc.edu/")
-    # location set to lowest int:02d; full content not displayed without locationNum query param
-    _, url = client.get(""), client.get(
-        f"https://nutrition.sa.ucsc.edu/label.aspx?locationNum=05&RecNumAndPort={id}"
-    )
+    # location set to lowest int:02d; full content not displayed without locationNum query argument
+    _, url = client.get(""), client.get(f"label.aspx?locationNum=05&RecNumAndPort={id}")
     soup = BeautifulSoup(url.text, "lxml")
     if soup.find("div", {"class": "labelnotavailable"}):
         return None
@@ -222,7 +220,7 @@ def items_to_home():
 
 @food.route("/items/<id>")
 def items(id):
-    """Get nutritional data for a on-campus university-managed dining/eatery location."""
+    """Retrieve nutritional data for a on-campus university-managed dining/eatery location."""
     response = scrape_item(id)
     return response if response else abort(204)
 

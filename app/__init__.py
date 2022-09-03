@@ -17,8 +17,8 @@ print("initializing app and extensions...", end="")
 app = Flask(__name__)
 app.config.from_object(Config)
 cors = CORS(app)
-limiter = Limiter(key_func=get_remote_address)
-limiter.init_app(app)  # TODO: add rate limit
+# set up limits
+limiter = Limiter(app, key_func=get_remote_address)  # TODO: add rate limit
 print("done")
 
 # from sentry_sdk.integrations.flask import FlaskIntegration
@@ -32,10 +32,17 @@ print("done")
 #     traces_sample_rate=1.0,
 # )
 # print("done")
+from re import findall
 from re import sub
 from unicodedata import normalize
 
 print("defining helper functions...", end="")
+
+
+# TODO: remove lower option, conserve strict inbound header case sensitivity
+def camel_case(text):
+    snake = sub(r"(_|-)+", " ", text).title().replace(" ", "")
+    return snake[0].lower() + snake[1:]
 
 
 def condense_args(request, lower=False):
@@ -44,8 +51,31 @@ def condense_args(request, lower=False):
         inbound = request.get_json(force=True)
     except:
         pass
-    inbound.update(dict(**request.args))
+    inbound.update(dict(request.args))  # TODO: figure out "**" operators
     return {k.lower(): v for k, v in inbound.items()} if lower else inbound
+
+
+def force_to_int(text):
+    if any([c.isdigit() for c in text]):
+        return int(sub(r"\D", "", text))
+    return text
+
+
+def parse_days_times(text):
+    text = text.split(" ")
+    days = {
+        "M": "Monday",
+        "Tu": "Tuesday",
+        "W": "Wednesday",
+        "Th": "Thursday",
+        "F": "Friday",
+    }
+    acros, times = findall("[A-Z][^A-Z]*", text[0]), text[1].split("-")
+    {"start": times[0], "end": times[1]}
+    return {
+        "days": {i: days[i] for i in acros},
+        "times": {"start": times[0], "end": times[1]},
+    }
 
 
 def readify(text):
@@ -57,7 +87,7 @@ print("done")
 from .start.locations import scrape_locations
 from .start.menus import scrape_menus
 
-print("scraping locations and menus...", end="")
+print("scraping food data...", end="")
 deta = Deta(app.config["DETA_KEY"])
 foodDB = deta.Base("food")
 foodDB.put(scrape_locations(), "locations")
@@ -66,12 +96,24 @@ print("done")
 
 # TODO: get quarter end dates for current quarter
 # print("scraping calendar...")
-# page = get('https://registrar.ucsc.edu/calendar/future.html')
+# page = clientget("https://registrar.ucsc.edu/calendar/future.html")
 # soup = BeautifulSoup(page.text, 'lxml', SoupStrainer(['h3', 'td']))
 # print(soup)
 
 from bs4 import BeautifulSoup, SoupStrainer, NavigableString
-from httpx import get
+from httpx import Client
+
+
+print("scraping classroom data...", end="")
+client = Client()
+classrooms, page = {}, client.get("https://its.ucsc.edu/classrooms/")
+soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("select"))
+for i in soup.find_all("option")[1:]:
+    classrooms[i.text] = f"https://its.ucsc.edu{i['value']}"
+catalogDB = deta.Base("catalog")
+catalogDB.put(classrooms, "classrooms")
+print("done")
+
 
 print("scraping pisa headers...", end="")
 last, store, comp = (
@@ -79,7 +121,7 @@ last, store, comp = (
     [],
     {"action": {"action": ["results", "detail"]}},  # next is adjusted by page
 )
-page = get("https://pisa.ucsc.edu/class_search/index.php")
+page = client.get("https://pisa.ucsc.edu/class_search/index.php")
 soup = BeautifulSoup(
     page.text, "lxml", parse_only=SoupStrainer(["label", "select", "input"])
 )
@@ -87,8 +129,7 @@ soup = BeautifulSoup(
 # FIXME: GE top level key has weird escape chars
 for i in soup:
     if i.name == "label":
-        snake = sub(r"(_|-)+", " ", i.text.strip()).title().replace(" ", "")
-        camel = snake[0].lower() + snake[1:]
+        camel = camel_case(i.text.strip())
         if i.get("class") == ["col-sm-2", "form-control-label"]:
             comp[camel], last = {}, camel
         elif i.get("class") == ["sr-only"]:
@@ -116,8 +157,17 @@ for i in comp:
         del comp[last][transfer[0]]
         comp[i][transfer[0]] = transfer[1]
     last = i
+# workaround for https://github.com/deta/deta-python/issues/77
+for i in comp:
+    for j in comp[i]:
+        if isinstance(comp[i][j], dict):
+            key = list(comp[i][j].keys())[0]
+            if not key:
+                value = list(comp[i][j].values())[0]
+                del comp[i][j][key]
+                comp[i][j] = {"default": value} | comp[i][j]
 print("done")
-print("building catalog headers...", end="")
+print("building pisa headers...", end="")
 template = {}
 for i in comp:
     if len(comp[i]) != 1:
@@ -149,9 +199,8 @@ for i in comp:
 outbound["rec_start"], outbound["rec_dur"] = "0", "25"
 if len(template) == 2:
     template, outbound = None, None
-# catalogDB = deta.Base("catalog")
-# catalogDB.put(template, "template")
-# catalogDB.put(outbound, "outbound")
+catalogDB.put(template, "template")
+catalogDB.put(outbound, "outbound")
 print("error")
 
 # from orjson import OPT_INDENT_2

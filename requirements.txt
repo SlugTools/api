@@ -7,6 +7,7 @@ flask-limiter
 flask-monitoringdashboard
 gunicorn
 httpx
+humanize
 lxml
 orjson
 python-dotenv

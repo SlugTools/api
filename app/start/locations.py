@@ -1,3 +1,4 @@
+from pprint import pprint
 from re import findall
 from urllib.parse import parse_qs
 from urllib.parse import quote_plus
@@ -10,7 +11,6 @@ from app import readify
 
 
 # TODO: loop @ 1 day
-# FIXME: fix porter market issue
 def scrape_locations():
     client, managed = Client(), {}
     page = client.get("https://nutrition.sa.ucsc.edu/")
@@ -28,12 +28,12 @@ def scrape_locations():
                 "phone": None,
                 # 'hours': None,
                 # waitz
-                "open": None,  # include hours?
-                "occupation": None,
+                # "open": None,  # include hours?
+                # "occupation": None,
             }
 
     page = client.get("https://dining.ucsc.edu/eat/")
-    soup = BeautifulSoup(page.text, "lxml-xml")
+    soup = BeautifulSoup(page.text, "lxml")
     # groups headers and child elements (location info page)
     temp, matches = soup.find_all(["h2", "li"]), {}
     for index, value in enumerate(temp):
@@ -63,8 +63,9 @@ def scrape_locations():
         li = matches[ratio_list[max_ratio]]
 
         # waitz api processing
-        data = client.get("https://waitz.io/live/ucsc").json()
-        comp_data = client.get("https://waitz.io/compare/ucsc").json()
+        client = Client(base_url="https://waitz.io/")
+        data = client.get("live/ucsc").json()
+        comp_data = client.get("compare/ucsc").json()
         ratio_list = {}
         for j in data["data"]:
             # current compromise to get past the name - ratio problem
@@ -100,89 +101,93 @@ def scrape_locations():
                 "location"
             ] = f'https://www.google.com/maps/dir/?api=1&destination={quote_plus(managed[i]["name"])}'
             managed[i]["phone"] = readify(li.find("p").text.split("✆")[1])
-            # TODO: implement 'hours' scraping
+            # TODO: scrape hours, possibly a stretch since waitz reports it for dining halls
+            # waitz mobile app shows hours, doesn't seem to be on the website/api
             # resp = session.get(f'https://dining.ucsc.edu/eat/#{soup.find(li.find("a")["href"])}')
-            # test = BeautifulSoup(resp.text, 'lxml')
+            # test = BeautifulSoup(resp.text, "lxml")
             # print(test)
 
         # waitz matching
-        # compromise in matching c9/c10 to c9/john r. lewis; contacted waitz support to change name
-        # c9/c10 & c9/john r. lewis gives a ratio of 46, whereas others are 90+
-        if max_ratio == 46 or max_ratio > 90:
-            if ratio_list[max_ratio][0]["isOpen"]:
-                managed[i]["open"] = True
-                trends = []
-                for j in ratio_list[max_ratio][1]["comparison"]:
-                    if j["valid"]:
-                        soup = BeautifulSoup(j["string"], "lxml")
-                        text = soup.get_text()
-                        trends.append(text)
-                managed[i]["occupation"] = {
-                    "people": ratio_list[max_ratio][0]["people"],
-                    "capacity": ratio_list[max_ratio][0]["capacity"],
-                    "busyness": {
-                        "status": " ".join(
-                            ratio_list[max_ratio][0]["locHtml"]["summary"].split(" ")[
-                                :2
-                            ]
-                        ),
-                        "percent": int(
-                            findall(
-                                r"\d+", ratio_list[max_ratio][0]["locHtml"]["summary"]
-                            )[0]
-                        ),
-                    },
-                    "bestLocation": None,
-                    "subLocations": None,
-                    "trends": None,
-                }
-                # if it works, it works
-                if ratio_list[max_ratio][0]["bestLocations"]:
-                    if ratio_list[max_ratio][0]["subLocs"]:
-                        managed[i]["occupation"]["subLocations"] = []
-                        for j in ratio_list[max_ratio][0]["subLocs"]:
-                            if (
-                                j["id"]
-                                == ratio_list[max_ratio][0]["bestLocations"][0]["id"]
-                            ):
-                                managed[i]["occupation"]["bestLocation"] = j["name"]
-                            managed[i]["occupation"]["subLocations"].append(
-                                {
-                                    "name": j["name"],
-                                    "abbreviation": j["abbreviation"],
-                                    "people": j["people"],
-                                    "capacity": j["capacity"],
-                                    "busyness": {
-                                        "status": " ".join(
-                                            j["subLocHtml"]["summary"].split(" ")[:2]
-                                        ),
-                                        "percent": int(
-                                            findall(r"\d+", j["subLocHtml"]["summary"])[
-                                                0
-                                            ]
-                                        ),
-                                    },
-                                }
-                            )
-                trends = []
-                for j in ratio_list[max_ratio][1]["comparison"]:
-                    if j["valid"]:
-                        soup = BeautifulSoup(j["string"], "lxml")
-                        trends.append(soup.get_text())
-                managed[i]["occupation"]["trends"] = trends if trends else None
-            else:
-                managed[i]["open"] = False
+        if "dining hall" in managed[i]["name"].lower():
+            if max_ratio >= 85:
+                if ratio_list[max_ratio][0]["isOpen"]:
+                    managed[i]["open"] = True
+                    trends = []
+                    for j in ratio_list[max_ratio][1]["comparison"]:
+                        if j["valid"]:
+                            soup = BeautifulSoup(j["string"], "lxml")
+                            text = soup.get_text()
+                            trends.append(text)
+                    managed[i]["occupation"] = {
+                        "people": ratio_list[max_ratio][0]["people"],
+                        "capacity": ratio_list[max_ratio][0]["capacity"],
+                        "busyness": {
+                            "status": " ".join(
+                                ratio_list[max_ratio][0]["locHtml"]["summary"].split(
+                                    " "
+                                )[:2]
+                            ),
+                            "percent": int(
+                                findall(
+                                    r"\d+",
+                                    ratio_list[max_ratio][0]["locHtml"]["summary"],
+                                )[0]
+                            ),
+                        },
+                        "bestLocation": None,
+                        "subLocations": None,
+                        "trends": None,
+                    }
+                    # if it works, it works
+                    if ratio_list[max_ratio][0]["bestLocations"]:
+                        if ratio_list[max_ratio][0]["subLocs"]:
+                            managed[i]["occupation"]["subLocations"] = []
+                            for j in ratio_list[max_ratio][0]["subLocs"]:
+                                if (
+                                    j["id"]
+                                    == ratio_list[max_ratio][0]["bestLocations"][0][
+                                        "id"
+                                    ]
+                                ):
+                                    managed[i]["occupation"]["bestLocation"] = j["name"]
+                                managed[i]["occupation"]["subLocations"].append(
+                                    {
+                                        "name": j["name"],
+                                        "abbreviation": j["abbreviation"],
+                                        "people": j["people"],
+                                        "capacity": j["capacity"],
+                                        "busyness": {
+                                            "status": " ".join(
+                                                j["subLocHtml"]["summary"].split(" ")[
+                                                    :2
+                                                ]
+                                            ),
+                                            "percent": int(
+                                                findall(
+                                                    r"\d+", j["subLocHtml"]["summary"]
+                                                )[0]
+                                            ),
+                                        },
+                                    }
+                                )
+                    trends = []
+                    for j in ratio_list[max_ratio][1]["comparison"]:
+                        if j["valid"]:
+                            soup = BeautifulSoup(j["string"], "lxml")
+                            trends.append(soup.get_text())
+                    managed[i]["occupation"]["trends"] = trends if trends else None
+                else:
+                    managed[i]["open"] = False
 
     # streetFood uses https://financial.ucsc.edu/Pages/Food_Trucks.aspx
-    # unable to scrape through soap POST request
-    # options like requests_html, html2pdf, pdfkit, etc. not viable
+    # unable to scrape through microsoft soap POST request
+    # options like requests_html, html2pdf, pdfkit, etc. too heavy
     # FIXME: find non-intensive method of scraping streetFood
     # possible solutions:
-    # - request data from public repl hosting selenium scraping code
+    # - request data from a public repl hosting selenium scraping code
     # - try screenshot and ocring webpage on a loop
-    # try ratemyprof repo method, simple get requests
+    # - try ratemyprof repo method, simple get requests
     unmanaged = {"streetFood": [], "other": []}
-    page = client.get("https://financial.ucsc.edu/Pages/Food_Trucks.aspx")
     page = client.get("https://basicneeds.ucsc.edu/resources/on-campus-food.html")
     soup = BeautifulSoup(page.text, "lxml")
     # groups headers and child elements (location info page)

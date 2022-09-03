@@ -2,15 +2,16 @@
 
 # TODO: add hyperlinks to actual endpoint, and make it accessible through #
 {% block content %}
-    <p>A simple REST API that returns detailed and organized data on university services. Report any issues in the corresponding <a href="https://github.slug.tools/">organization</a> repository.</p>
+    <p>A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz. Report any issues in the GitHub <a href="https://github.slug.tools/api">repository</a></p>
     <h1>Endpoints</h1>
     <p>All listed endpoints originate from the current URL and return a JSON response.</p>
     {% for i in map %}
         <h3 name={{ "#" + i[1:] }}><code>{{ i }}</code></h3>
         <p>{{ map[i]["description"] }}</p>
         {% for j in map[i]["routes"] %}
-            <!--hyperlink is <a href={{ i + j }}>{{ j.split()[0] }}</a></code>-->
-            <h4 name={{ "#" + j[1:].replace("/", "-") }}>{{ j.split()[0] }} ({{ map[i]["routes"][j]["methods"]|safe }})</h4>
+            <h4 name={{ "#" + j[1:].replace("/", "-") }}>
+                <a href={{ i + j }} style="text-decoration: none">{{ j.split()[0] }}</a> ({{ map[i]["routes"][j]["methods"]|safe }})
+            </h4>
             <p>{{ map[i]["routes"][j]["description"]|safe }}</p>
         {% endfor %}
     {% endfor %}

@@ -13,18 +13,14 @@ def index():
 
 
 @laundry.route("/main")
-async def main():
-    """Get residential laundry facility data."""
-    client = Client()
-    resp = await client.get("https://www.laundryview.com/api/c_room?loc=9632")
-    campus = await resp.json()
+def main():
+    """Retrieve residential laundry facility data."""
+    client = Client(base_url="https://www.laundryview.com/api")
+    campus = client.get("c_room?loc=9632").json()
     final = {}
     for i in range(len(campus["room_data"])):
         id = campus["room_data"][i]["laundry_room_location"]
-        resp = await client.get(
-            f"https://www.laundryview.com/api/currentRoomData?location={id}"
-        )
-        location = await resp.json()
+        location = client.get(f"currentRoomData?location={id}").json()
         individual = {"dryers": [], "washers": []}
         for k in location["objects"]:
             if k.get("appliance_type"):

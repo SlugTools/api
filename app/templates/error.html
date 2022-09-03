@@ -2,5 +2,5 @@
 
 {% block content %}
 	<h1>{{ code }} - {{ name }}</h1>
-	<p>{{ description }}</p>
+	<p>{{ description|safe }}</p>
 {% endblock %}
