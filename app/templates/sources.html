@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Sources</h1>
+    <p>All returned data is the property of their respective base endpoints' sources. </p>
+    {% for i in sources %}
+        <h3><code>{{ i }}</code></h3>
+        <p>{{ map[i] }}</p>
+        {% for j in sources[i] %}
+            <p><a href={{ sources[i][j] }} target="_blank" rel="noopener noreferrer">{{ j }}</a></p>
+        {% endfor %}
+    {% endfor %}
+{% endblock %}

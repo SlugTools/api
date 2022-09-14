@@ -11,8 +11,8 @@ from app import readify
 
 
 # TODO: loop @ 1 day
-def scrape_locations():
-    client, managed = Client(), {}
+def scrape_locations(client):
+    managed = {}
     page = client.get("https://nutrition.sa.ucsc.edu/")
     soup = BeautifulSoup(page.text, "lxml")
     # initial return setup; parses only from menu page
@@ -20,16 +20,11 @@ def scrape_locations():
         if "location" in i["href"]:
             managed[int(parse_qs(i["href"])["locationNum"][0])] = {
                 # nutrition.sa.ucsc.edu
-                # 'id': int(parse_qs(i['href'])['locationNum'][0]),
                 "name": parse_qs(i["href"])["locationName"][0],
                 # dining.ucsc.edu/eat
                 "description": None,
                 "location": None,  # TODO: turn into address
                 "phone": None,
-                # 'hours': None,
-                # waitz
-                # "open": None,  # include hours?
-                # "occupation": None,
             }
 
     page = client.get("https://dining.ucsc.edu/eat/")
@@ -62,22 +57,6 @@ def scrape_locations():
         max_ratio = max(list(ratio_list.keys()))
         li = matches[ratio_list[max_ratio]]
 
-        # waitz api processing
-        client = Client(base_url="https://waitz.io/")
-        data = client.get("live/ucsc").json()
-        comp_data = client.get("compare/ucsc").json()
-        ratio_list = {}
-        for j in data["data"]:
-            # current compromise to get past the name - ratio problem
-            if len(ratio_list) == 4:
-                break
-            ratio = fuzz.ratio(
-                managed[i]["name"].lower().replace("dining hall", ""),
-                j["name"].lower().replace("dining hall", ""),
-            )
-            ratio_list[ratio] = [j, comp_data["data"][len(ratio_list)]]
-        max_ratio = max(list(ratio_list.keys()))
-
         # location matching
         if isMultiple[0]:
             if not isinstance(managed[i]["description"], list):
@@ -88,7 +67,7 @@ def scrape_locations():
                 managed[i]["description"].append(
                     readify(matches[j].find("p").text.split("✆")[0])
                 )
-                # https://developers.google.com/maps/documentation/urls/get-started; maybe parse web embed url
+                # TODO: use google maps places api to get address
                 managed[i]["location"].append(
                     f"https://www.google.com/maps/dir/?api=1&destination={quote_plus(j.text.strip())}"
                 )
@@ -101,83 +80,8 @@ def scrape_locations():
                 "location"
             ] = f'https://www.google.com/maps/dir/?api=1&destination={quote_plus(managed[i]["name"])}'
             managed[i]["phone"] = readify(li.find("p").text.split("✆")[1])
-            # TODO: scrape hours, possibly a stretch since waitz reports it for dining halls
-            # waitz mobile app shows hours, doesn't seem to be on the website/api
-            # resp = session.get(f'https://dining.ucsc.edu/eat/#{soup.find(li.find("a")["href"])}')
-            # test = BeautifulSoup(resp.text, "lxml")
-            # print(test)
-
-        # waitz matching
-        if "dining hall" in managed[i]["name"].lower():
-            if max_ratio >= 85:
-                if ratio_list[max_ratio][0]["isOpen"]:
-                    managed[i]["open"] = True
-                    trends = []
-                    for j in ratio_list[max_ratio][1]["comparison"]:
-                        if j["valid"]:
-                            soup = BeautifulSoup(j["string"], "lxml")
-                            text = soup.get_text()
-                            trends.append(text)
-                    managed[i]["occupation"] = {
-                        "people": ratio_list[max_ratio][0]["people"],
-                        "capacity": ratio_list[max_ratio][0]["capacity"],
-                        "busyness": {
-                            "status": " ".join(
-                                ratio_list[max_ratio][0]["locHtml"]["summary"].split(
-                                    " "
-                                )[:2]
-                            ),
-                            "percent": int(
-                                findall(
-                                    r"\d+",
-                                    ratio_list[max_ratio][0]["locHtml"]["summary"],
-                                )[0]
-                            ),
-                        },
-                        "bestLocation": None,
-                        "subLocations": None,
-                        "trends": None,
-                    }
-                    # if it works, it works
-                    if ratio_list[max_ratio][0]["bestLocations"]:
-                        if ratio_list[max_ratio][0]["subLocs"]:
-                            managed[i]["occupation"]["subLocations"] = []
-                            for j in ratio_list[max_ratio][0]["subLocs"]:
-                                if (
-                                    j["id"]
-                                    == ratio_list[max_ratio][0]["bestLocations"][0][
-                                        "id"
-                                    ]
-                                ):
-                                    managed[i]["occupation"]["bestLocation"] = j["name"]
-                                managed[i]["occupation"]["subLocations"].append(
-                                    {
-                                        "name": j["name"],
-                                        "abbreviation": j["abbreviation"],
-                                        "people": j["people"],
-                                        "capacity": j["capacity"],
-                                        "busyness": {
-                                            "status": " ".join(
-                                                j["subLocHtml"]["summary"].split(" ")[
-                                                    :2
-                                                ]
-                                            ),
-                                            "percent": int(
-                                                findall(
-                                                    r"\d+", j["subLocHtml"]["summary"]
-                                                )[0]
-                                            ),
-                                        },
-                                    }
-                                )
-                    trends = []
-                    for j in ratio_list[max_ratio][1]["comparison"]:
-                        if j["valid"]:
-                            soup = BeautifulSoup(j["string"], "lxml")
-                            trends.append(soup.get_text())
-                    managed[i]["occupation"]["trends"] = trends if trends else None
-                else:
-                    managed[i]["open"] = False
+            # TODO: scrape hours; probably a stretch since waitz reports it for dining halls
+            # waitz mobile app shows hours; doesn't seem to be on the website/api
 
     # streetFood uses https://financial.ucsc.edu/Pages/Food_Trucks.aspx
     # unable to scrape through microsoft soap POST request

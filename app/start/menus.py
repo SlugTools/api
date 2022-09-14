@@ -6,15 +6,14 @@ from urllib.parse import quote_plus
 from bs4 import BeautifulSoup
 from httpx import Client
 
-from .locations import scrape_locations
 from app import readify
 
 
 # TODO: loop @ 1 day
-def scrape_menus(date=datetime.now().strftime("%m-%d-%Y")):
-    client, locations, master = (
+def scrape_menus_items(client, locations, date=datetime.now().strftime("%m-%d-%Y")):
+    client, master, itemsList = (
         Client(base_url="https://nutrition.sa.ucsc.edu/"),
-        scrape_locations(),
+        {},
         {},
     )
     for i in locations["managed"]:
@@ -22,9 +21,8 @@ def scrape_menus(date=datetime.now().strftime("%m-%d-%Y")):
         for j in locations["managed"][i]:
             menu = {"short": {}, "long": {}}
             # short scraping
-            _, new = client.get(""), client.get(
-                f'shortmenu.aspx?locationNum={j:02d}&locationName={quote_plus(locations["managed"][i][j]["name"])}&naFlag=1&dtdate={date}'
-            )
+            link = f'shortmenu.aspx?locationNum={j:02d}&locationName={quote_plus(locations["managed"][i][j]["name"])}&naFlag=1&dtdate={date}'
+            _, new = client.get(""), client.get(link)
             if new.status_code == 500:
                 return None
             short_soup = BeautifulSoup(new.text, "lxml")
@@ -34,7 +32,7 @@ def scrape_menus(date=datetime.now().strftime("%m-%d-%Y")):
                 continue
 
             # long scraping
-            item_list = {}
+            items = {}
             for k in short_soup.find_all("a"):
                 # TODO: do a faster check
                 if k["href"].startswith("longmenu"):
@@ -57,19 +55,19 @@ def scrape_menus(date=datetime.now().strftime("%m-%d-%Y")):
                         elif m["class"][0] == "longmenucoldispname":
                             course = list(menu["long"][meal].keys())[-1]
                             item_id = m.find("input").attrs["value"]
-                            menu["long"][meal][course][readify(m.text)] = item_id
-                            item_list[readify(m.text)] = item_id
+                            menu["long"][meal][course][item_id] = readify(m.text)
+                            items[item_id] = readify(m.text)
                         elif (
                             m.text.strip() != ""
                         ):  # else doesn't account for course row price whitespace
                             course = list(menu["long"][meal].keys())[-1]
                             item = list(menu["long"][meal][course].keys())[-1]
-                            item_price = {
-                                "id": menu["long"][meal][course][item],
+                            name_price = {
+                                "name": menu["long"][meal][course][item],
                                 "price": m.text,
                             }
-                            menu["long"][meal][course][item] = item_price
-                            item_list[item] = item_price
+                            menu["long"][meal][course][item] = name_price
+                            items[item] = name_price
 
             # short scraping
             for k in short_soup.find_all(
@@ -85,33 +83,30 @@ def scrape_menus(date=datetime.now().strftime("%m-%d-%Y")):
                 else:
                     meal = list(menu["short"].keys())[-1]
                     course = list(menu["short"][meal].keys())[-1]
-                    # FIXME: 'Cheese Pizza' KeyError; current fix is just a error bypass
-                    # normalize() just removes the '\xa0' that comes at the end of each j.text
+                    # FIXME: ValueError: 'Cheese Sauce' is not in list
                     try:
-                        menu["short"][meal][course][readify(k.text)] = item_list[
-                            readify(k.text)
-                        ]
+                        menu["short"][meal][course][
+                            list(items.keys())[
+                                list(items.values()).index(readify(k.text))
+                            ]
+                        ] = readify(k.text)
                     except:
                         pass
-            # short and long dict attachment
-            master[i][j] = (
-                None if all(not menu["short"][m] for m in menu["short"]) else menu
-            )
-    # remove submenus; short == long
-    # parsing diningHalls and butteries separately not practical
+            itemsList |= items
+            # short and long menu attachment
+            wipe = True
+            for m in menu["short"]:
+                if menu["short"][m]:
+                    wipe = False
+                else:
+                    menu["short"][m] = None
+            master[i][j] = None if wipe else menu
+            # FIXME: clickable URL returns error because requires cache
+            master[i][j] = {
+                "name": locations["managed"][i][j]["name"],
+                "link": str(client.base_url) + link,
+            } | master[i][j]
     for i in master["butteries"]:
         if master["butteries"][i]:
             master["butteries"][i] = master["butteries"][i]["short"]
-    return master
-
-
-# imported from parent function
-def get_menu(location_id: int, date):
-    menus = scrape_menus(date)
-    for i in menus:
-        if location_id in list(menus[i].keys()):
-            if menus[i][location_id]:
-                return menus[i][location_id]
-            else:
-                # FIXME: return something that indicates an empty menu but valid location
-                return {"short": None, "long": None}
+    return master, itemsList

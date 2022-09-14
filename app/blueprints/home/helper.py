@@ -1,22 +1,12 @@
-from pprint import pprint
-
-from flask import Blueprint
-from flask import redirect
-from flask import render_template
+from re import search
 
 from app import app
 
-home = Blueprint("home", __name__)
 
-
-@home.route("/")
-def index():
+def get_index():
     map, functions, rules = {}, app.view_functions, app.url_map.iter_rules()
     color, hold = {"GET": "forestgreen", "POST": "dodgerblue"}, []
     for i, j in zip(functions, rules):
-        # print(i)
-        # print(j)
-        # print()
         split = i.split(".")
         if "." in i and split[0] not in ["static", "home"]:
             if split[1] == "index":
@@ -26,6 +16,8 @@ def index():
                 }
             elif functions[i].__doc__:
                 route = f"/{'/'.join(str(j).split('/')[2:])}"
+                dtype = search("<(.*):", route)
+                route = route.replace(f"{dtype.group(1)}:", "") if dtype else route
                 methods = [
                     f"<p style='display:inline; color:{color[k]};'>{k}</p>"
                     for k in list(j.methods)
@@ -36,4 +28,13 @@ def index():
                     "methods": ", ".join(methods),
                 }
                 hold.append(i)
-    return render_template("index.html", map=map)
+    return map
+
+
+def get_sources():
+    map, bps = {}, app.view_functions
+    for i in bps:
+        split = i.split(".")
+        if "." in i and split[0] not in ["static", "home"]:
+            if split[1] == "index":
+                map[f"/{split[0]}"] = bps[i].__doc__

@@ -1,45 +1,22 @@
 from datetime import datetime
-from pprint import pprint
 from re import compile
 from urllib.parse import quote_plus
 
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 from flask import abort
-from flask import Blueprint
-from flask import redirect
-from flask import request
-from flask import url_for
-from httpx import Client
 from httpx import get
 from httpx import post
-from humanize import precisedelta
 from orjson import loads
 from thefuzz.process import extractOne
 
-from app import camel_case
-from app import catalogDB
-from app import condense_args
 from app import force_to_int
 from app import parse_days_times
 from app import readify
 
-catalog = Blueprint("catalog", __name__)
 
-
-@catalog.route("/")
-def index():
-    """Provides academically relative data for campus instructional offerings."""
-    return redirect("/#catalog")
-
-
-@catalog.route("/classroom/<string:name>", methods=["GET"])
-def classroom(name: str):
-    """Retrieve data for a classroom. Specify a classroom name with <code>name</code> (string)."""
-    classrooms = catalogDB.get("classrooms")
-    del classrooms["key"]
-    res = extractOne(name, list(classrooms.keys()))
-    # FIXME: adjust threshold
+def get_rooms_name(name, rooms):
+    res = extractOne(name, list(rooms.keys()))
     _ = (
         True
         if compile(r"\d").search(name)
@@ -48,7 +25,8 @@ def classroom(name: str):
             "The argument <code>name</code> should contain numbers to indicate a specific room.",
         )
     )
-    page = get(classrooms[res[0]]) if res[1] > 60 else abort(404)
+    # FIXME: global threshold for extractOne has been 85, this one is more lenient
+    page = get(rooms[res[0]]) if res[1] > 60 else abort(404)
     soup = BeautifulSoup(
         page.text,
         "lxml",
@@ -59,11 +37,11 @@ def classroom(name: str):
         images.append(
             {
                 "caption": readify(i.text.split(". ")[-1]),
-                "link": f"https://its.ucsc.edu/classrooms/media-info/{i.find('img')['src']}",
+                "link": f"https://its.ucsc.edu/rooms/media-info/{i.find('img')['src']}",
             }
         )
     master = {
-        "link": classrooms[res[0]],
+        "link": rooms[res[0]],
         "capacity": int(titles[0].text.split(" ")[-1]),
         "facilityID": titles[1].text.split(": ")[-1],
         "equipment": [readify(i.text) for i in soup.find_all("li")],
@@ -75,19 +53,8 @@ def classroom(name: str):
     return master
 
 
-@catalog.route("/teacher")
-def teacher_to_home():
-    return redirect("/#catalog-teacher")
-
-
-# TODO: https://githrequestsub.com/Nobelz/RateMyProfessorAPI has a ~2s slower implementation; push a PR
-# FIXME: fetch __ref from somewhere
-# https://campusdirectory.ucsc.edu/cd_simple
-@catalog.route("/teacher/<name>")
-def teacher(name):
-    """Retrieve public data for a registered university member."""
-    # session = Session()
-    # sid possibly prone to change
+def get_rating(name):
+    # FIXME: sid possibly prone to change
     page = get(
         f"https://www.ratemyprofessors.com/search/teachers?query={quote_plus(name)}&sid=1078"
     )
@@ -105,7 +72,7 @@ def teacher(name):
                     content[i] = None
             break
 
-    # __ref possibly prone to change
+    # FIXME: __ref possibly prone to change
     return (
         {
             "name": f"{content['firstName']} {content['lastName']}",
@@ -123,10 +90,7 @@ def teacher(name):
     )
 
 
-@catalog.route("/term", methods=["GET", "POST"])
-def term():
-    """Retrieve a code for an academic term to use for a class/course search. Specify a quarter with <code>quarter</code> (string) and/or a year with <code>year</code> (integer)."""
-    inbound = condense_args(request, True)
+def get_term(inbound):
     year = int(datetime.now().strftime("%Y"))
     # TODO: fetch from calendar, currently hardcoded
     quarters, hold = {
@@ -154,7 +118,6 @@ def term():
                 hold.append(i)
                 hold.append(quarters[i][1])
                 break
-    # TODO: adjust the function to align with pisa (occ. a quarter ahead)?
     quarter, code = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
     # code += 4 # TODO: figure out how pisa changes selected option
     return (
@@ -164,31 +127,8 @@ def term():
     )
 
 
-@catalog.route("/class")
-def class_to_home():
-    return redirect("/#catalog-class")
-
-
-# @catalog.route("/class/calendar", methods=["GET", "POST"])
-# def class_calendar():
-#     # TODO: times might override, make a check
-#     # TODO: make a valid docstring
-#     """Retrieve a generated calendar (<code>.ics</code> file) for specific class/course(s). Specify class/course numbers with <code>number</code> (array)."""
-#     inbound, client = condense_args(request, True), Client()
-
-
-@catalog.route("/class/detail", methods=["GET", "POST"])
-@catalog.route("/course/detail", methods=["GET", "POST"])
-def class_detail():
-    """Retrieve details for a specific class/course. Specify a term with <code>term</code> (optional) and a number with <code>number</code>."""
-    inbound, client = condense_args(request, True), Client()
-    term = (
-        inbound["term"]
-        if inbound.get("term")
-        else client.get(f"http://127.0.0.1:5000{url_for('catalog.term')}").json()[
-            "code"
-        ]
-    )
+def get_classes(inbound):
+    term = inbound["term"] if inbound.get("term") else get_term({})["code"]
     number = (
         str(inbound["number"])
         if inbound.get("number")
@@ -210,6 +150,7 @@ def class_detail():
     if soup.find("h2").text.strip() == "Class not found":
         abort(204)
     title = readify(soup.find("div", attrs={"class": "col-xs-12"}).text)
+    title = abort(404) if title == "-" else title
     links = soup.find_all("div", attrs={"class": "col-xs-6"})[1]
     master = {
         "header": {
@@ -261,7 +202,7 @@ def class_detail():
                         )
                 else:
                     break
-            master["details"] = master["details"] | {
+            master["details"] |= {
                 "capacity": {
                     "enrollment": {
                         "filled": int(table[21].text),
@@ -290,7 +231,7 @@ def class_detail():
                 daysTimes = (
                     parse_days_times(comp[j].text) if comp[j].text.strip() else None
                 )
-                # times and times | {"duration": precisedelta(datetime.strptime(times["end"], "%I:%M%p") - datetime.strptime(times["start"], "%I:%M%p"))}
+                # daysTimes and daysTimes["times"] | {"duration": precisedelta(datetime.strptime(daysTimes["times"]["end"], "%I:%M%p") - datetime.strptime(daysTimes["times"]["start"], "%I:%M%p"))}
                 room = comp[j + 1].text.strip()
                 dates = comp[j + 3].text.split(" - ")
                 instance = {
@@ -337,25 +278,11 @@ def class_detail():
     return master
 
 
-# ~1.5s response time, speed up heavily
-@catalog.route("/class/search", methods=["GET", "POST"])
-@catalog.route("/course/search", methods=["GET", "POST"])
-def class_search():
-    f"""Retrieve class/course search results. Specify arguments (in their defined data type) accessible at <code><a href={url_for('catalog.class_search_template')}>{url_for('catalog.class_search_template')}</a></code>."""
-    inbound = condense_args(request)
-    # [curr year relative calendar, increment value]
-    template = catalogDB.get("template")
-    del template["key"]
-    template = template if template else abort(503)
-    outbound = catalogDB.get("outbound")
-    del outbound["key"]
+def get_classes_search(inbound, template, outbound):
     c, keys = 0, list(outbound.keys())
-    # TODO: abort with 500 for invalid types, or use default?
     # TODO: adjust ratio threshold for fuzzy matching
     # FIXME: operation keys not getting fuzzy matches properly
-    # TODO: add debug option to view outbound headers
-    # TODO: incorporate way to check type of courseNumber and courseUnits value
-    # if it works, it works
+    # TODO: add debug argument to view outbound headers
     for i in template:
         if isinstance(template[i], dict):
             # compromise
@@ -365,24 +292,40 @@ def class_search():
                     hasSubLevels = True
                     break
             if hasSubLevels:
-                for j in template[i]:
-                    if isinstance(template[i][j], dict):
-                        if inbound.get(i, {}).get(j):
-                            extract = extractOne(
-                                str(inbound[i][j]), list(template[i][j].keys())
-                            )
-                            if (
-                                isinstance(inbound[i][j], (int, str))
-                                and extract[1] > 85
+                # default to value parameter if no dictionary
+                if isinstance(inbound.get(i), (int, str)):
+                    # compromise for matching
+                    matches = {
+                        "courseNumber": "binds[:catalog_nbr]",
+                        "courseUnits": "binds[:crse_units_exact]",
+                        "instructorLastName": "binds[:instructor]",
+                    }
+                    if i in matches:
+                        outbound[matches[i]] = str(inbound[i])
+                    c += len(template[i])
+                else:
+                    # print(i)
+                    # print(inbound[i])
+                    for j in template[i]:
+                        if isinstance(template[i][j], dict):
+                            # FIXME: operation key not getting fuzzy matches properly
+                            if inbound.get(i, {}).get(j):
+                                extract = extractOne(
+                                    str(inbound[i][j]), list(template[i][j].keys())
+                                )
+                                print(extract)
+                                if (
+                                    isinstance(inbound[i][j], (int, str))
+                                    and extract[1] > 85
+                                ):
+                                    outbound[keys[c]] = extract[0]
+                            c += 1
+                        else:
+                            if inbound.get(i, {}).get(j) and isinstance(
+                                inbound[i][j], (int, str)
                             ):
-                                outbound[keys[c]] = extract[0]
-                        c += 1
-                    else:
-                        if inbound.get(i, {}).get(j) and isinstance(
-                            inbound[i][j], (int, str)
-                        ):
-                            outbound[keys[c]] = inbound[i][j]
-                        c += 1
+                                outbound[keys[c]] = inbound[i][j]
+                            c += 1
                 continue  # debugging for a solid hour got me to add this line
             else:
                 # special cases
@@ -391,13 +334,15 @@ def class_search():
                         for j in inbound[i]:
                             if not inbound[i][j]:
                                 outbound[keys[c]] = ""
+                    # page
                     else:
                         # TODO: regulate # of results
                         if (
-                            inbound[i].get("results")
-                            and str(inbound[i]["results"]).isnumeric()
+                            inbound[i].get("results", {}).get("display")
+                            and str(inbound[i]["results"]["display"]).isnumeric()
+                            and int(inbound[i]["results"]["display"]) <= 25
                         ):
-                            outbound["rec_dur"] = inbound[i]["results"]
+                            outbound["rec_dur"] = inbound[i]["results"]["display"]
                         # TODO: regulate page #
                         if (
                             inbound[i].get("number")
@@ -410,6 +355,7 @@ def class_search():
                             ) * int(outbound["rec_dur"])
                 elif inbound.get(i):
                     extract = extractOne(str(inbound[i]), list(template[i].keys()))
+                    print(extract)
                     if isinstance(inbound[i], (int, str)) and extract[1] > 85:
                         outbound[keys[c]] = extract[0]
             c += 1
@@ -421,54 +367,59 @@ def class_search():
             c += 1
         else:
             if i in inbound:  # .get() issue
-                # FIXME: type() is slower than isinstance()
                 if isinstance(inbound[i], (int, str)):
                     outbound[keys[c]] = inbound[i]
             c += 1
     # workaround for https://github.com/deta/deta-python/issues/77
     new = outbound.copy()
     for i in outbound:
-        new[i] = "" if outbound[i] == "default" else outbound[i]
-    outbound, classes = new, {}
-    page = post("https://pisa.ucsc.edu/class_search/index.php", data=outbound)
-    soup = BeautifulSoup(
-        page.text,
-        "lxml",
-        parse_only=SoupStrainer(
-            "div", attrs={"class": ["panel panel-default row", "row hide-print"]}
+        elem = str(outbound[i])
+        if elem.startswith("default"):
+            split = elem.split("-")
+            new[i] = split[1] if len(split) == 2 else ""
+        else:
+            new[i] = elem
+    page = post("https://pisa.ucsc.edu/class_search/index.php", data=new)
+    soup, classes = (
+        BeautifulSoup(
+            page.text,
+            "lxml",
+            parse_only=SoupStrainer(
+                "div", attrs={"class": ["panel panel-default row", "row hide-print"]}
+            ),
         ),
+        {},
     )
-    for i in soup.find_all("div", attrs={"class": "panel panel-default row"}):
-        head = readify(
-            i.find("div", attrs={"class": "panel-heading panel-heading-custom"})
-            .find("h2")
-            .find("a")
-            .text
-        )
+    all = soup.find_all("div", attrs={"class": "panel panel-default row"})
+    all = all if all else abort(404)
+    for i in all:
+        head = i.find(
+            "div", attrs={"class": "panel-heading panel-heading-custom"}
+        ).find("h2")
+        title = readify(head.find("a").text)
         body = i.find("div", attrs={"class": "panel-body"}).find("div")
         left = body.find_all("div", attrs={"class": "col-xs-6 col-sm-3"})
         right = body.find_all("div", attrs={"class": "col-xs-6 col-sm-6"})
         instructor = [
             i.strip()
             for i in left[1].get_text(separator="\n").replace(",", ", ").split("\n")
-        ]  # FIXME: idk bout this
+        ]
         typeLoc = right[0].text.split(" ")
         type, location = typeLoc[1].replace(":", ""), " ".join(typeLoc[2:])
         bottom = body.find_all("div", attrs={"class": "col-xs-6 col-sm-3 hide-print"})
-        # FIXME: why is the first element empty
         daysTimes = (
             parse_days_times(right[1].text.strip()[right[1].text.index(": ") + 2 :])
             if "-" in right[1].text
             else None
         )
         # times and times | {"duration": precisedelta(datetime.strptime(times["end"], "%I:%M%p") - datetime.strptime(times["start"], "%I:%M%p"))}
-        # TODO: status? (open, closed, waitlist)
         classes[int(left[0].find("a").text)] = {
+            "status": head.find("span").text,
             "title": {
-                "subject": head.split(" ")[0],
-                "number": head.split(" ")[1],
-                "section": head.split(" ")[3],
-                "name": " ".join(head.split(" ")[4:])
+                "subject": title.split(" ")[0],
+                "number": title.split(" ")[1],
+                "section": title.split(" ")[3],
+                "name": " ".join(title.split(" ")[4:])
                 .replace(":", ": ")
                 .replace(",", ", "),
             },
@@ -482,12 +433,12 @@ def class_search():
                 "filled": int(left[2].text.split(" ")[1]),
                 "total": int(left[2].text.split(" ")[3]),
             },
-            "textbooks": bottom[0].find("a")["href"],  # link
+            "textbooks": bottom[0].find("a")["href"],
             "mode": bottom[2].text.split(":")[1],
         }
     number = (
         1
-        if int(outbound["rec_start"]) == 0
+        if outbound["action"] == "results"
         else int(int(outbound["rec_start"]) / int(outbound["rec_dur"]) + 2)
     )
     total = int(
@@ -503,23 +454,3 @@ def class_search():
         },
         "classes": classes,
     }
-
-
-@catalog.route("/class/search/template")
-def class_search_template():
-    f"""Retrieve the template to build your request for <a href='{url_for('catalog.class_search')}'>{url_for('catalog.class_search')}</a></code>."""
-    template = catalogDB.get("template")
-    del template["key"]
-    return template if template else abort(503)
-
-
-@catalog.route("/class/textbooks")
-def forward_textbooks():
-    return redirect("/#catalog-class-textbooks")
-
-
-# TODO: use https://ucsc.textbookx.com/institutional/index.php?action=browse#/books/3426324
-@catalog.route("/class/textbooks/<id>")
-def get_textbooks(class_id):
-    """Retrieve items/materials for a specific class/course number."""
-    pass

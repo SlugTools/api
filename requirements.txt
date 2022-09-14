@@ -1,10 +1,9 @@
 beautifulsoup4
 cchardet
-deta # TODO: use async version
-flask # TODO: migrate to quart
+deta
 flask-cors
 flask-limiter
-flask-monitoringdashboard
+flask[async]
 gunicorn
 httpx
 humanize
@@ -12,5 +11,5 @@ lxml
 orjson
 python-dotenv
 round-nutrition
-sentry-sdk[flask] # TODO: use quart after migration
+sentry-sdk[flask]
 thefuzz[speedup]
