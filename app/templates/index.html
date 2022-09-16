@@ -5,19 +5,20 @@
     <h1>Endpoints</h1>
     <p>All listed endpoints originate from the current URL and return a JSON response.</p>
     {% for i in map %}
-        <h3><code>{{ i }}</code></h3>
+        <h3>{{ i }}</h3>
         <p>{{ map[i]["description"] }}</p>
         {% for j in map[i]["routes"] %}
-            <h4 name={{ "#" + j[1:].replace("/", "-") }}>
+            <h4>
                 {% if "<" in j %}
+                    {% set default = map[i]["routes"][j]["default"] %}
                     <script type="text/javascript">
-                        function theFunction(url) {
-                            return prompt("Enter an argument:");
+                        function theFunction() {
+                            return prompt("Enter an argument:", '{{ default }}');
                         }
                     </script>
-                    <a onclick="window.open('{{ i }}' + '{{ j.split('<')[0] }}' + theFunction())" style="cursor: pointer">{{ j.split()[0] }}</a> ({{ map[i]["routes"][j]["methods"]|safe }})</a>
+                    <a onclick="window.open('{{ i }}' + '{{ j.split('<')[0] }}' + prompt('Enter an argument:'', '{{ default }}'))" style="cursor: pointer">{{ j.split()[0] }} {{ map[i]["routes"][j]["methods"]|safe }}</a>
                 {% else %}
-                    <a href={{ i + j }} target="_blank" rel="noopener noreferrer" style="text-decoration: none;">{{ j.split()[0] }}</a> ({{ map[i]["routes"][j]["methods"]|safe }})
+                    <a href={{ i + j }} target="_blank" rel="noopener noreferrer" style="text-decoration: none;">{{ j.split()[0] }} {{ map[i]["routes"][j]["methods"]|safe }}</a>
                 {% endif %}
             </h4>
             <p>{{ map[i]["routes"][j]["description"]|safe }}</p>

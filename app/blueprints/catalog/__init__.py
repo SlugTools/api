@@ -1,3 +1,7 @@
+from re import compile
+from re import L
+from re import search
+
 from flask import abort
 from flask import Blueprint
 from flask import redirect
@@ -7,6 +11,7 @@ from .helper import *
 from app import catalogDB
 from app import condense_args
 from app import limiter
+from app import melt
 
 catalog = Blueprint("catalog", __name__)
 catalog_sources = {
@@ -39,10 +44,8 @@ def classrooms():
 
 @catalog.route("/rooms/<string:name>")
 def rooms_name(name: str):
-    """Retrieve data for a classroom. Specify a name with <code>name</code> (string)."""
-    rooms = catalogDB.get("rooms")
-    del rooms["key"]
-    return get_rooms_name(name, rooms)
+    """Retrieve data for a classroom. Specify a name with <code>name</code> (string). Example: Classroom Unit 001"""
+    return get_rooms_name(name, catalogDB.get("rooms"))
 
 
 @catalog.route("/classrooms/<string:name>")
@@ -56,7 +59,7 @@ def classrooms_name(name: str):
 # https://campusdirectory.ucsc.edu/cd_simple
 @catalog.route("/rating/<string:name>")
 def rating(name: str):
-    """Retrieve a RateMyProfessors rating for a teacher. Specify a name with <code>name</code> (string)."""
+    """Retrieve a RateMyProfessors rating for a teacher. Specify a name with <code>name</code> (string). Example: Luca De Alfaro"""
     return get_rating(name)
 
 
@@ -90,7 +93,7 @@ def classes():
 @catalog.route("/classes/<int:number>", methods=["GET", "POST"])
 @limiter.limit("5/minute")
 def classes_number(number: int):
-    """Retrieve data for a specific class. Specify a number with <code>number</code> (integer)."""
+    """Retrieve data for a specific class. Specify a number with <code>number</code> (integer). Example: 10495"""
     return get_classes({"number": number})
 
 
@@ -111,12 +114,33 @@ def classes_search():
     """Retrieve class search results. Specify arguments (in their defined data type) accessible at <a href=/catalog/classes/search/template target="_blank" rel="noopener noreferrer">/classes/search/template</a>."""
     inbound = condense_args(request)
     # [curr year relative calendar, increment value]
-    template = catalogDB.get("template")
-    del template["key"]
+    template = melt(catalogDB.get("template"))
     template = template if template else abort(503)
-    outbound = catalogDB.get("outbound")
-    del outbound["key"]
+    outbound = melt(catalogDB.get("outbound"))
     return get_classes_search(inbound, template, outbound)
+
+
+@catalog.route("/classes/search/<string:code>", methods=["GET", "POST"])
+@limiter.limit("5/minute")
+def classes_search_name(code: str):
+    """Retrieve class search results. Specify a subject and a number following it with <code>code</code> (string). Example: MATH 19A"""
+    # [curr year relative calendar, increment value]
+    template = melt(catalogDB.get("template"))
+    template = template if template else abort(503)
+    outbound = melt(catalogDB.get("outbound"))
+    match = search(r"\d", code)
+    match = (
+        match.start()
+        if match
+        else abort(
+            400,
+            "The argument <code>code</code> should have a subject and a number following it.",
+        )
+    )
+    print(extractOne(code[:match], list(template["subject"].keys())))
+    return get_classes_search(
+        {"subject": code[:match], "courseNumber": code[match:]}, template, outbound
+    )
 
 
 @catalog.route("/courses/search", methods=["GET", "POST"])
@@ -127,8 +151,7 @@ def courses_search():
 @catalog.route("/classes/search/template")
 def classes_search_template():
     """Retrieve the template to build your request for <a href=/catalog/classes/search target="_blank" rel="noopener noreferrer">/classes/search</a></code>."""
-    template = catalogDB.get("template")
-    del template["key"]
+    template = melt(catalogDB.get("template"))
     return template if template else abort(503)
 
 

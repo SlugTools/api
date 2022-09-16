@@ -11,7 +11,7 @@ from round_nutrition import Main
 from thefuzz.process import extractOne
 
 
-def get_live(live, compare):
+def update(live, compare):
     if live["isOpen"]:
         master = {
             "open": live["isOpen"],
@@ -59,20 +59,20 @@ def get_live(live, compare):
     return {"open": False, "occupation": None, "subLocation": None}
 
 
-def get_locations(locations):
+def update_locations(locations):
     client = Client(base_url="https://waitz.io/")
     live = client.get("live/ucsc").json()["data"]
     compare = client.get("compare/ucsc").json()["data"]
     names = {i: j["name"] for i, j in enumerate(live)}
     for i in locations["managed"]["diningHalls"]:
         match = extractOne(locations["managed"]["diningHalls"][i]["name"], names)
-        locations["managed"]["diningHalls"][i] |= get_live(
+        locations["managed"]["diningHalls"][i] |= update(
             live[match[2]], compare[match[2]]
         )
     return locations
 
 
-def get_locations_id(locations, id):
+def update_locations_id(locations, id):
     for i in locations["managed"]:
         for j in locations["managed"][i]:
             if j == str(id):
@@ -82,7 +82,7 @@ def get_locations_id(locations, id):
                     compare = client.get("compare/ucsc").json()["data"]
                     names = {i: j["name"] for i, j in enumerate(live)}
                     match = extractOne(locations["managed"][i][j]["name"], names)
-                    return locations["managed"][i][j] | get_live(
+                    return locations["managed"][i][j] | update(
                         live[match[2]], compare[match[2]]
                     )
 

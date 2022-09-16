@@ -17,6 +17,7 @@ def get_index():
             elif functions[i].__doc__:
                 route = f"/{'/'.join(str(j).split('/')[2:])}"
                 dtype = search("<(.*):", route)
+                default = True if dtype else False
                 route = route.replace(f"{dtype.group(1)}:", "") if dtype else route
                 methods = [
                     f"<p style='display:inline; color:{color[k]};'>{k}</p>"
@@ -24,9 +25,12 @@ def get_index():
                     if k not in ["HEAD", "OPTIONS"]
                 ]
                 map[f"/{split[0]}"]["routes"][route] = {
-                    "description": functions[i].__doc__,
-                    "methods": ", ".join(methods),
+                    "description": functions[i].__doc__.split(" E")[0],
+                    "methods": " ".join(methods),
                 }
+                map[f"/{split[0]}"]["routes"][route] |= (
+                    {"default": functions[i].__doc__.split(": ")[1]} if default else {}
+                )
                 hold.append(i)
     return map
 

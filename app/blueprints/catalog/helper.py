@@ -1,4 +1,5 @@
 from datetime import datetime
+from pprint import pprint
 from re import compile
 from urllib.parse import quote_plus
 
@@ -304,8 +305,6 @@ def get_classes_search(inbound, template, outbound):
                         outbound[matches[i]] = str(inbound[i])
                     c += len(template[i])
                 else:
-                    # print(i)
-                    # print(inbound[i])
                     for j in template[i]:
                         if isinstance(template[i][j], dict):
                             # FIXME: operation key not getting fuzzy matches properly
@@ -313,7 +312,6 @@ def get_classes_search(inbound, template, outbound):
                                 extract = extractOne(
                                     str(inbound[i][j]), list(template[i][j].keys())
                                 )
-                                print(extract)
                                 if (
                                     isinstance(inbound[i][j], (int, str))
                                     and extract[1] > 85
@@ -355,7 +353,6 @@ def get_classes_search(inbound, template, outbound):
                             ) * int(outbound["rec_dur"])
                 elif inbound.get(i):
                     extract = extractOne(str(inbound[i]), list(template[i].keys()))
-                    print(extract)
                     if isinstance(inbound[i], (int, str)) and extract[1] > 85:
                         outbound[keys[c]] = extract[0]
             c += 1
@@ -366,6 +363,7 @@ def get_classes_search(inbound, template, outbound):
                     outbound[keys[c]] = extract[0]
             c += 1
         else:
+            print(i)
             if i in inbound:  # .get() issue
                 if isinstance(inbound[i], (int, str)):
                     outbound[keys[c]] = inbound[i]
@@ -379,6 +377,7 @@ def get_classes_search(inbound, template, outbound):
             new[i] = split[1] if len(split) == 2 else ""
         else:
             new[i] = elem
+    pprint(new, sort_dicts=False, compact=True)
     page = post("https://pisa.ucsc.edu/class_search/index.php", data=new)
     soup, classes = (
         BeautifulSoup(

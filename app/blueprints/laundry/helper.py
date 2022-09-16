@@ -1,7 +1,7 @@
 from httpx import Client
 
 
-def get_live(id, client):
+def update(id, client):
     location = client.get(f"currentRoomData?location={id}").json()
     summary = {"dryers": [], "washers": []}
     for i in location["objects"]:
@@ -17,13 +17,13 @@ def get_live(id, client):
     return {"summary": summary}
 
 
-def get_rooms(rooms):
+def update_rooms(rooms):
     client = Client(base_url="https://www.laundryview.com/api")
     for i in rooms:
-        rooms[i] != get_live(i, client)
+        rooms[i] != update(i, client)
     return rooms
 
 
-def get_rooms_id(id, rooms):
+def update_rooms_id(id, rooms):
     client = Client(base_url="https://www.laundryview.com/api")
-    return rooms[id] | get_live(id, client)
+    return rooms[id] | update(id, client)

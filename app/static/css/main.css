@@ -11,6 +11,7 @@
     padding: 0;
     box-sizing: border-box;
 }
+
 body {
     font-family: "Lexend Deca", serif;
     font-size: 16px;
@@ -21,45 +22,57 @@ body {
     border-top-style: solid;
     border-top-color: #003c6c;
 }
+
 header {
     margin-bottom: 10px;
 }
+
 header a {
     text-decoration: none;
 }
+
 img {
     height: 52px;
     vertical-align: top;
     display: inline-block;
+    padding-right: 7px;
 }
+
 h2 {
     font-size: 40px;
     display: inline-block;
 }
+
 h3 {
     font-size: 25px;
     display: inline;
     margin-top: 10px;
 }
+
 h4 {
     display: inline;
 }
+
 p {
     margin: 5px 0 8px;
     max-width: 6.5in;
     line-height: 1.5;
 }
+
 a {
     color: inherit;
 }
+
 #warning {
     color: #D5202F;
 }
+
 footer {
     margin-top: 10px;
     font-size: 12px;
     color: gray;
 }
+
 i {
     padding-right: 5px;
 }

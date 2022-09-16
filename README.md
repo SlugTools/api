@@ -1,6 +1,7 @@
-![Uptime Robot status](https://img.shields.io/uptimerobot/status/m792610788-ec5bd8ede10c18f96a13393a)
-# 🔧 API
-A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz. Documentation and other information is available at [api.slug.tools](https://api.slug.tools).
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/SlugTools/api/main.svg)](https://results.pre-commit.ci/latest/github/SlugTools/api/main)
+[![Uptime Robot status](https://img.shields.io/uptimerobot/status/m792610788-ec5bd8ede10c18f96a13393a)](https://status.slug.tools)
+# 🔧 SlugTools API
+A simple REST API that returns detailed and organized data on services pertaining to the [University of California, Santa Cruz](https://www.ucsc.edu/). Documentation and other information is available [here](https://api.slug.tools).
 
 ## Run
 Clone this repository and create and activate a Python virtual environment in the directory's root with the following.
@@ -12,11 +13,11 @@ Install and upgrade the project's dependencies with the following.
 ```bash
 python -m pip install -r requirements.txt --upgrade
 ```
-Comment out all calls for `sentry_sdk` in [`app/__init__.py`](https://github.com/SlugTools/api/blob/main/app/__init__.py), create an account at [Deta](https://web.deta.sh/), create a project, and save its key into an `.env` file as `DETA_KEY` in the directory's root.
+Comment out the `init` call for `sentry_sdk` in [`app/__init__.py`](https://github.com/SlugTools/api/blob/main/app/__init__.py), create an account for [Deta](https://web.deta.sh/), create a project, and save its key into an `.env` file as `DETA_KEY` in the directory's root.
 ```env
-DETA_KEY=[key goes here]
+DETA_KEY=[ENTER KEY HERE]
 ```
-Run the app once with the following so it can create and save data to Deta. Once finished, exit out and comment out the [data scraping call](https://github.com/SlugTools/api/blob/main/app/__init__.py#L172) to avoid repeatedly fetching data from remote sources on edit/save/startup.
+Run the app once with the following so it can create and save data to Deta. Once finished, exit out and comment out the call to `scrape_data` to avoid repeatedly fetching data from remote sources on edit/save/startup.
 ```bash
 python debug.py
 ```

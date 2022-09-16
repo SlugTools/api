@@ -20,16 +20,13 @@ def index():
 @laundry.route("/rooms")
 def rooms():
     """Retrieve data for all residential laundry facilities."""
-    rooms = laundryDB.get("rooms")
-    del rooms["key"]
-    return get_rooms(rooms)
+    return update_rooms(laundryDB.get("rooms"))
 
 
 @laundry.route("/rooms/<int:id>")
 def rooms_id(id: int):
-    """Retrieve data for a residential laundry facility. Specify an ID with <code>id</code> (integer)."""
+    """Retrieve data for a residential laundry facility. Specify an ID with <code>id</code> (integer). Example: 590391007"""
     rooms = laundryDB.get("rooms")
-    del rooms["key"]
     if rooms.get(str(id)):
-        return get_rooms_id(str(id), rooms)
+        return update_rooms_id(str(id), rooms)
     abort(404)

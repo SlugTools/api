@@ -10,8 +10,6 @@ from sentry_sdk.integrations.httpx import HttpxIntegration
 
 from config import Config
 
-# from newrelic.agent import initialize
-
 
 # TODO: add option to disable data scraping
 def create_app() -> Flask:
@@ -51,6 +49,19 @@ def force_to_int(text):
     if any([c.isdigit() for c in text]):
         return int(sub(r"\D", "", text))
     return text
+
+
+# TODO: currently works as a temp fix; rework to reach all sublevels
+# construct lexicographically sorted data by adding preceding two-digit index
+def forge(data):
+    keys = list(data.keys())
+    return {f"{(i + 1):02d}{keys[i]}": v[1] for i, v in enumerate(data.items())}
+
+
+# TODO: currently works as a temp fix; rework to reach all sublevels
+# deconstruct lexicographically sorted data by removing preceding two-digit index
+def melt(data):
+    return {k[2:]: v for k, v in data.items() if k != "key"}
 
 
 def parse_days_times(text):
@@ -125,13 +136,13 @@ def scrape_data(client):
     food = scrape_food(client)
     laundry = scrape_laundry(client)
     print("saving to databases...", end="", flush=True)
-    catalogDB.put(catalog["rooms"], "rooms")
-    catalogDB.put(catalog["template"], "template")
-    catalogDB.put(catalog["outbound"], "outbound")
-    foodDB.put(food["locations"], "locations")
-    foodDB.put(food["menus"], "menus")
-    foodDB.put(food["items"], "items")
-    laundryDB.put(laundry["rooms"], "rooms")
+    catalogDB.put(forge(catalog["rooms"]), "rooms")
+    catalogDB.put(forge(catalog["template"]), "template")
+    catalogDB.put(forge(catalog["outbound"]), "outbound")
+    foodDB.put(forge(food["locations"]), "locations")
+    foodDB.put(forge(food["menus"]), "menus")
+    foodDB.put(forge(food["items"]), "items")
+    laundryDB.put(forge(laundry["rooms"]), "rooms")
     print("done")
 
 
@@ -170,13 +181,12 @@ with app.app_context():
     CORS(app)
     deta = Deta(app.config["DETA_KEY"])
     # TODO: set up limits
-    limiter = Limiter(app, key_func=get_remote_address)  # TODO: add rate limit
-    # initialize(os.path.join(app.config["ROOT_DIR"], "newrelic.ini"))
-    init(
-        dsn=app.config["SENTRY_SDK_DSN"],
-        integrations=[FlaskIntegration(), HttpxIntegration()],
-        traces_sample_rate=1.0,
-    )
+    limiter = Limiter(app, key_func=get_remote_address)
+    # init(
+    #     dsn=app.config["SENTRY_SDK_DSN"],
+    #     integrations=[FlaskIntegration(), HttpxIntegration()],
+    #     traces_sample_rate=1.0,
+    # )
     print("done")
     print("declaring databases...", end="", flush=True)
     catalogDB = deta.Base("catalog")
@@ -184,5 +194,5 @@ with app.app_context():
     laundryDB = deta.Base("laundry")
     print("done")
     client = Client()
-    scrape_data(Client())
+    # scrape_data(Client())
     sources = register_blueprints(app)
