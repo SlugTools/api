@@ -1,9 +1,10 @@
 beautifulsoup4
 cchardet
 deta
+flask
+flask-compress
 flask-cors
 flask-limiter
-flask[async]
 gunicorn
 httpx
 humanize

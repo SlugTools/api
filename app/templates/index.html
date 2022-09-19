@@ -10,13 +10,14 @@
         {% for j in map[i]["routes"] %}
             <h4>
                 {% if "<" in j %}
-                    {% set default = map[i]["routes"][j]["default"] %}
-                    <script type="text/javascript">
-                        function theFunction() {
-                            return prompt("Enter an argument:", '{{ default }}');
+                    <script>
+                        function promtpGo(value, argument, url) {
+                            let input = prompt(`Enter a(n) \"${argument}\" argument:`, value);
+                            if (input == null) { return; }
+                            window.open(`${url}${input}`);
                         }
                     </script>
-                    <a onclick="window.open('{{ i }}' + '{{ j.split('<')[0] }}' + prompt('Enter an argument:'', '{{ default }}'))" style="cursor: pointer">{{ j.split()[0] }} {{ map[i]["routes"][j]["methods"]|safe }}</a>
+                    <a onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="cursor: pointer">{{ j.split()[0] }} {{ map[i]["routes"][j]["methods"]|safe }}</a>
                 {% else %}
                     <a href={{ i + j }} target="_blank" rel="noopener noreferrer" style="text-decoration: none;">{{ j.split()[0] }} {{ map[i]["routes"][j]["methods"]|safe }}</a>
                 {% endif %}

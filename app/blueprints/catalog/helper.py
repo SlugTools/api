@@ -16,16 +16,14 @@ from app import parse_days_times
 from app import readify
 
 
+# TODO: add name
 def get_rooms_name(name, rooms):
     res = extractOne(name, list(rooms.keys()))
-    _ = (
-        True
-        if compile(r"\d").search(name)
-        else abort(
+    if not compile(r"\d").search(name):
+        abort(
             400,
-            "The argument <code>name</code> should contain numbers to indicate a specific room.",
+            "The argument 'name' should contain numbers to indicate a specific room.",
         )
-    )
     # FIXME: global threshold for extractOne has been 85, this one is more lenient
     page = get(rooms[res[0]]) if res[1] > 60 else abort(404)
     soup = BeautifulSoup(
@@ -133,7 +131,7 @@ def get_classes(inbound):
     number = (
         str(inbound["number"])
         if inbound.get("number")
-        else abort(400, "The argument <code>number</code> is required.")
+        else abort(400, "The argument 'number' is required.")
     )
     outbound = {
         "action": "detail",

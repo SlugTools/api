@@ -2,6 +2,7 @@ from functools import partial
 from re import findall
 from re import sub
 from unicodedata import normalize
+from urllib.parse import quote_plus
 
 from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
@@ -22,10 +23,10 @@ def update(live, compare):
                 },
                 "busyness": {
                     "status": live["locHtml"]["summary"].split(" (")[0],
-                    "percent": live["percentage"],
+                    "percent": live["percentage"] * 100,
                 },
             },
-            "subLocation": None,
+            "subLocations": None,
         }
         if live["subLocs"]:
             best, all = "", []
@@ -85,7 +86,6 @@ def update_locations_id(locations, id):
                     return locations["managed"][i][j] | update(
                         live[match[2]], compare[match[2]]
                     )
-
                 return locations["managed"][i][j]
     return None
 
@@ -116,8 +116,9 @@ def scrape_item(id, comply=True):
     if soup.find("div", {"class": "labelnotavailable"}):
         return None
     master = {
-        "name": None,
-        "ingredients": None,
+        "name": soup.find("div", {"class": "labelrecipe"}).text,
+        "image": None,
+        "ingredients": soup.find("span", {"class": "labelingredientsvalue"}).text,
         "labels": {
             "eggs": False,
             "vegan": False,
@@ -161,8 +162,9 @@ def scrape_item(id, comply=True):
             },
         },
     }
-    master["name"] = soup.find("div", {"class": "labelrecipe"}).text
-    master["ingredients"] = soup.find("span", {"class": "labelingredientsvalue"}).text
+    master[
+        "image"
+    ] = f"https://www.google.com/search?q={quote_plus(master['name'])}&tbm=isch"
 
     # labels
     for i in soup.find_all("img"):
@@ -242,7 +244,7 @@ def get_items_sum(inbound):
     ids = (
         list(inbound["ids"])
         if inbound.get("ids")
-        else abort(400, "The argument <code>ids</code> is required.")
+        else abort(400, "The argument 'ids' is required.")
     )
     master = {}
 

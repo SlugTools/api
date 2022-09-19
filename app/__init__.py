@@ -1,5 +1,6 @@
 from deta import Deta
 from flask import Flask
+from flask_compress import Compress
 from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -97,21 +98,17 @@ def scrape_data(client):
         # page = client.get("https://registrar.ucsc.edu/calendar/future.html")
         # soup = BeautifulSoup(page.text, "lxml", SoupStrainer(["h3", "td"]))
         # print(soup)
-        from .start.classrooms import scrape_rooms
+        from .start.catalog import scrape_rooms, build_headers
 
         print("scraping room data...", end="", flush=True)
         rooms = scrape_rooms(client)
         print("done")
-
-        from .start.pisa_headers import build_headers
-
         pisa = build_headers(client)
         print("done")
         return {"rooms": rooms, "template": pisa[0], "outbound": pisa[1]}
 
     def scrape_food(client):
-        from .start.locations import scrape_locations
-        from .start.menus import scrape_menus_items
+        from .start.food import scrape_locations, scrape_menus_items
 
         print("scraping locational data...", end="", flush=True)
         locations = scrape_locations(client)
@@ -125,7 +122,7 @@ def scrape_data(client):
         }
 
     def scrape_laundry(client):
-        from .start.laundry_rooms import scrape_laundry_rooms
+        from .start.laundry import scrape_laundry_rooms
 
         print("scraping laundry data...", end="", flush=True)
         rooms = scrape_laundry_rooms(client)
@@ -136,13 +133,13 @@ def scrape_data(client):
     food = scrape_food(client)
     laundry = scrape_laundry(client)
     print("saving to databases...", end="", flush=True)
-    catalogDB.put(forge(catalog["rooms"]), "rooms")
+    catalogDB.put(catalog["rooms"], "rooms")
     catalogDB.put(forge(catalog["template"]), "template")
     catalogDB.put(forge(catalog["outbound"]), "outbound")
-    foodDB.put(forge(food["locations"]), "locations")
-    foodDB.put(forge(food["menus"]), "menus")
-    foodDB.put(forge(food["items"]), "items")
-    laundryDB.put(forge(laundry["rooms"]), "rooms")
+    foodDB.put(food["locations"], "locations")
+    foodDB.put(food["menus"], "menus")
+    foodDB.put(food["items"], "items")
+    laundryDB.put(laundry["rooms"], "rooms")
     print("done")
 
 
@@ -178,6 +175,7 @@ def register_blueprints(app):
 
 with app.app_context():
     print("initializing extensions...", end="", flush=True)
+    Compress(app)
     CORS(app)
     deta = Deta(app.config["DETA_KEY"])
     # TODO: set up limits

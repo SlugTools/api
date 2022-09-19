@@ -27,7 +27,9 @@ def index():
 @food.route("/locations")
 def locations():
     """Retrieve current locational data for all on-campus dining/eatery locations."""
-    return update_locations(foodDB.get("locations"))
+    locations = foodDB.get("locations")
+    del locations["key"]
+    return update_locations(locations)
 
 
 @food.route("/places")

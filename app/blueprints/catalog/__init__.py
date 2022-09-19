@@ -93,7 +93,7 @@ def classes():
 @catalog.route("/classes/<int:number>", methods=["GET", "POST"])
 @limiter.limit("5/minute")
 def classes_number(number: int):
-    """Retrieve data for a specific class. Specify a number with <code>number</code> (integer). Example: 10495"""
+    """Retrieve data for a specific class for the current term. Specify a number with <code>number</code> (integer). Example: 10495"""
     return get_classes({"number": number})
 
 
@@ -111,7 +111,7 @@ def courses():
 @catalog.route("/classes/search", methods=["GET", "POST"])
 @limiter.limit("5/minute")
 def classes_search():
-    """Retrieve class search results. Specify arguments (in their defined data type) accessible at <a href=/catalog/classes/search/template target="_blank" rel="noopener noreferrer">/classes/search/template</a>."""
+    """Retrieve class search results. Specify argument(s) (in their defined data type) accessible at <a href=/catalog/classes/search/template target="_blank" rel="noopener noreferrer">/classes/search/template</a>."""
     inbound = condense_args(request)
     # [curr year relative calendar, increment value]
     template = melt(catalogDB.get("template"))
