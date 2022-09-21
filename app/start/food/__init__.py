@@ -10,48 +10,45 @@ from thefuzz.process import extract
 from app import readify
 
 
-# TODO: loop @ 1 day
-# TODO: use SoupStrainer to speed up scraping
-# scraping everything on eat page, maybe isolate and target first two h2 elements
+# TODO: task loop to run @ 12:00AM
+# TODO: scraping everything on eat page, maybe isolate and target first two h2 elements
 def scrape_locations(client):
     managed = {}
     page = client.get("https://nutrition.sa.ucsc.edu/")
-    soup = BeautifulSoup(page.text, "lxml")
-    # initial return setup; parses only from menu page
-    for i in soup.find_all("a"):
+    soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("a"))
+    for i in soup:
         if "location" in i["href"]:
             managed[int(parse_qs(i["href"])["locationNum"][0])] = {
                 # nutrition.sa.ucsc.edu
                 "name": parse_qs(i["href"])["locationName"][0],
                 # dining.ucsc.edu/eat
                 "description": None,
-                "location": None,  # TODO: turn into address
+                # TODO: turn into address
+                "location": None,
                 "phone": None,
             }
 
     page = client.get("https://dining.ucsc.edu/eat/")
     soup = BeautifulSoup(page.text, "lxml")
-    # groups headers and child elements (location info page)
     temp, matches = soup.find_all(["h2", "li"]), {}
     for index, value in enumerate(temp):
         if index + 1 < len(temp) and index - 1 >= 0:
             if temp[index - 1].name == "h2" and value.name == "li":
                 matches[temp[index - 1]] = value
 
-    # location matching
+    # match nutrition and dining page locations
     for i in managed:
         isMultiple = [False, []]
         match = extract(managed[i]["name"].lower(), list(matches.keys()), limit=2)
         if match[0][1] > match[1][1]:
             li = matches[match[0][0]]
-        # FIXME: workaround for double perk locations, maybe tweak to accommodate any #
+        # FIXME: workaround for double perk locations, maybe tweak to accommodate any # of locations
         elif match[0][1] == match[1][1]:
             isMultiple[0] = True
             isMultiple[1] = [match[0][0], match[1][0]]
         else:
             li = matches[match[1][0]]
 
-        # location matching
         if isMultiple[0]:
             if not isinstance(managed[i]["description"], list):
                 managed[i]["description"] = []
@@ -73,7 +70,6 @@ def scrape_locations(client):
             managed[i][
                 "location"
             ] = f'https://www.google.com/maps/dir/?api=1&destination={quote_plus(managed[i]["name"])}'
-            # FIXME: phone number is not always present
             managed[i]["phone"] = (
                 readify(li.find("p").text.split("✆")[1])[0:14] if li.find("p") else None
             )
@@ -90,7 +86,7 @@ def scrape_locations(client):
     # - try ratemyprof repo method, simple get requests
     unmanaged = {"streetFood": [], "other": []}
     page = client.get("https://basicneeds.ucsc.edu/resources/on-campus-food.html")
-    soup = BeautifulSoup(page.text, "lxml")
+    soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer(["h3", "p", "ul"]))
     # groups headers and child elements (location info page)
     temp, matches = soup.find_all(["h3", "p", "ul"])[13:-5], {}
     for index, value in enumerate(temp):
@@ -124,7 +120,7 @@ def scrape_locations(client):
     return master
 
 
-# TODO: loop @ 1 day
+# TODO: task loop to run @ 12:00AM
 def scrape_menus_items(client, locations, date=datetime.now().strftime("%m-%d-%Y")):
     client, menus, items = (
         Client(base_url="https://nutrition.sa.ucsc.edu/"),

@@ -1,8 +1,9 @@
 from http.client import HTTPException
 
-from flask import current_app
 from flask import render_template
 from werkzeug.exceptions import Aborter
+
+from app import app
 
 
 # TODO: forcibly render
@@ -14,16 +15,16 @@ class _204(HTTPException):
     )
 
 
-current_app.aborter = Aborter(extra={204: _204})
+app.aborter = Aborter(extra={204: _204})
 
 
-@current_app.errorhandler(_204)  # no content (success)
-@current_app.errorhandler(400)  # bad request
-@current_app.errorhandler(404)  # not found
-@current_app.errorhandler(405)  # method not allowed
-@current_app.errorhandler(429)  # too many requests
-@current_app.errorhandler(500)  # internal server error
-@current_app.errorhandler(503)  # service unavailable
+@app.errorhandler(_204)  # no content (success)
+@app.errorhandler(400)  # bad request
+@app.errorhandler(404)  # not found
+@app.errorhandler(405)  # method not allowed
+@app.errorhandler(429)  # too many requests
+@app.errorhandler(500)  # internal server error
+@app.errorhandler(503)  # service unavailable
 def internal_server_error(error):
     custom = {429: "The rate limit has been exceeded. Rate: "}
     return (

@@ -58,10 +58,10 @@ def menus():
     return menus
 
 
+# TODO: allow enabling date argument
 @food.route("/menus/<int:id>")
 def menus_id(id: int):
     """Retrieve today's menu data for an on-campus and university-managed dining/eatery location. Specify an ID with <code>id</code> (integer). Example: 40"""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
-    # TODO: allow enabling date argument
     menus = foodDB.get("menus")
     for i in menus:
         for j in menus[i]:
@@ -102,7 +102,6 @@ def items_search_name(name: str):
     items = foodDB.get("items")
     names = list(items.values())
     extract = extractOne(name, names)
-    # TODO: adjust threshold
     return (
         {"name": extract[0], "id": list(items.keys())[names.index(extract[0])]}
         if extract[1] > 85
@@ -110,7 +109,6 @@ def items_search_name(name: str):
     )
 
 
-# TODO: route for calculating items' total nutritional content
 @food.route("/items/sum", methods=["GET", "POST"])
 def items_sum():
     """Retrieve summed nutritional data for on-campus university-managed dining/eatery items. Specify IDs with <code>ids</code> (array of strings)."""

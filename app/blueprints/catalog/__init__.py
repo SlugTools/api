@@ -1,5 +1,3 @@
-from re import compile
-from re import L
 from re import search
 
 from flask import abort
@@ -53,14 +51,12 @@ def classrooms_name(name: str):
     return redirect(f"/#{request.blueprint}")
 
 
-# TODO: change endpoint name to fit rateMyProfessors
 # TODO: https://github.com/Nobelz/RateMyProfessorAPI has a ~2s slower implementation; push a PR
 # FIXME: fetch __ref from somewhere
-# https://campusdirectory.ucsc.edu/cd_simple
-@catalog.route("/rating/<string:name>")
-def rating(name: str):
+@catalog.route("/ratings/<string:name>")
+def ratings(name: str):
     """Retrieve a RateMyProfessors rating for a teacher. Specify a name with <code>name</code> (string). Example: Luca De Alfaro"""
-    return get_rating(name)
+    return get_ratings(name)
 
 
 @catalog.route("/term", methods=["GET", "POST"])
@@ -103,9 +99,6 @@ def courses():
 
 
 # FIXME: ~1.5s response time
-# FIXME: verify data type of each k:v pair
-# TODO: if only one argument given for a dict, default to most sensible key
-# FIXME: page 2 not parsing properly
 # FIXME: too high a of a page number returns error
 # http://localhost:5000/catalog/classes/search?courseNumber=19
 @catalog.route("/classes/search", methods=["GET", "POST"])
@@ -137,7 +130,6 @@ def classes_search_name(code: str):
             "The argument <code>code</code> should have a subject and a number following it.",
         )
     )
-    print(extractOne(code[:match], list(template["subject"].keys())))
     return get_classes_search(
         {"subject": code[:match], "courseNumber": code[match:]}, template, outbound
     )
@@ -152,6 +144,9 @@ def courses_search():
 def classes_search_template():
     """Retrieve the template to build your request for <a href=/catalog/classes/search target="_blank" rel="noopener noreferrer">/classes/search</a></code>."""
     template = melt(catalogDB.get("template"))
+    for i in template:
+        if isinstance(template[i], dict) and template[i].get("default-"):
+            template[i][""] = template[i].pop("default-")
     return template if template else abort(503)
 
 
@@ -170,7 +165,7 @@ def courses_textbooks():
     return redirect(f"/#{request.blueprint}")
 
 
-# TODO: use https://ucsc.textbookx.com/institutional/index.php?action=browse#/books/3426324
+# https://ucsc.textbookx.com/institutional/index.php?action=browse#/books/3426324
 # @catalog.route("/classes/materials/<id>")
 # @catalog.route("/courses/textbooks/<id>")
 # def get_textbooks(class_id):

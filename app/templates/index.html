@@ -1,28 +1,30 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <p>A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz. <b>Please read the GitHub <a href="https://github.slug.tools">organization</a> and <a href="https://github.slug.tools/api">repository</a> READMEs, as well as the <a href="sources">sources</a> before using this service.</b> Report any bugs, errors, and/or issues in the GitHub <a href="https://github.slug.tools/api">repository</a>.</p>
+    <p>A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz. <b>Please read the GitHub <a href="https://github.slug.tools" target="_blank" rel="noopener noreferrer">organization</a> and <a href="https://github.slug.tools/api" target="_blank" rel="noopener noreferrer">repository</a> READMEs, as well as the <a href="sources">sources</a> before using this service.</b> Report any bugs, errors, and/or issues in the GitHub <a href="https://github.slug.tools/api" target="_blank" rel="noopener noreferrer">repository</a>.</p>
     <h1>Endpoints</h1>
     <p>All listed endpoints originate from the current URL and return a JSON response.</p>
+    <script>
+        function promtpGo(value, argument, url) {
+            let input = prompt(`Enter a(n) \"${argument}\" argument:`, value);
+            if (input == null) { return; }
+            // TODO: urllib.parse.quote_plus imitation not functioning
+            window.open(`${url}${encodeURIComponent(input)}`);
+        }
+    </script>
     {% for i in map %}
         <h3>{{ i }}</h3>
         <p>{{ map[i]["description"] }}</p>
         {% for j in map[i]["routes"] %}
             <h4>
                 {% if "<" in j %}
-                    <script>
-                        function promtpGo(value, argument, url) {
-                            let input = prompt(`Enter a(n) \"${argument}\" argument:`, value);
-                            if (input == null) { return; }
-                            window.open(`${url}${input}`);
-                        }
-                    </script>
-                    <a onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="cursor: pointer">{{ j.split()[0] }} {{ map[i]["routes"][j]["methods"]|safe }}</a>
+                    <a title="yeah" onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="cursor: pointer">{{ j.split()[0] }}</a> {{ map[i]["routes"][j]["methods"]|safe }}
                 {% else %}
-                    <a href={{ i + j }} target="_blank" rel="noopener noreferrer" style="text-decoration: none;">{{ j.split()[0] }} {{ map[i]["routes"][j]["methods"]|safe }}</a>
+                    <a href={{ i + j }} target="_blank" rel="noopener noreferrer" style="text-decoration: none;">{{ j.split()[0] }}</a> {{ map[i]["routes"][j]["methods"]|safe }}
                 {% endif %}
             </h4>
             <p>{{ map[i]["routes"][j]["description"]|safe }}</p>
         {% endfor %}
     {% endfor %}
+    <footer><a href="https://simpleanalytics.com/?utm_source=api.slug.tools&utm_content=badge" referrerpolicy="origin" target="_blank"><img src="https://simpleanalyticsbadges.com/api.slug.tools?logo=fdc700&text=fdc700&background=003c6c" style="object-fit: scale-down; max-width: 25%;" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous"></a></footer>
 {% endblock %}

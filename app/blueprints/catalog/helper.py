@@ -1,5 +1,4 @@
 from datetime import datetime
-from pprint import pprint
 from re import compile
 from urllib.parse import quote_plus
 
@@ -52,7 +51,7 @@ def get_rooms_name(name, rooms):
     return master
 
 
-def get_rating(name):
+def get_ratings(name):
     # FIXME: sid possibly prone to change
     page = get(
         f"https://www.ratemyprofessors.com/search/teachers?query={quote_plus(name)}&sid=1078"
@@ -361,7 +360,6 @@ def get_classes_search(inbound, template, outbound):
                     outbound[keys[c]] = extract[0]
             c += 1
         else:
-            print(i)
             if i in inbound:  # .get() issue
                 if isinstance(inbound[i], (int, str)):
                     outbound[keys[c]] = inbound[i]
@@ -375,7 +373,6 @@ def get_classes_search(inbound, template, outbound):
             new[i] = split[1] if len(split) == 2 else ""
         else:
             new[i] = elem
-    pprint(new, sort_dicts=False, compact=True)
     page = post("https://pisa.ucsc.edu/class_search/index.php", data=new)
     soup, classes = (
         BeautifulSoup(

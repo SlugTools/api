@@ -70,7 +70,6 @@ def build_headers(client):
     print("scraping pisa headers...", end="", flush=True)
     comp, template = scrape_headers(client), {}
     print("done")
-    print("building pisa headers...", end="", flush=True)
     for i in comp:
         if len(comp[i]) != 1:
             template[i] = {}

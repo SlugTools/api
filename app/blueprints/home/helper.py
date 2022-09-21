@@ -19,7 +19,6 @@ def get_index():
                 dtype = search("<(.*):", route)
                 default = True if dtype else False
                 route = route.replace(f"{dtype.group(1)}:", "") if dtype else route
-                # FIXME: properly alphabetize methods
                 methods = [
                     f"<p style='display:inline; color:{color[k]};'>{k}</p>"
                     for k in list(j.methods)

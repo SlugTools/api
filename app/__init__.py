@@ -1,3 +1,11 @@
+from re import findall
+from re import sub
+from threading import Event
+from threading import Thread
+from time import sleep
+from unicodedata import normalize
+
+from apscheduler.schedulers.background import BackgroundScheduler
 from deta import Deta
 from flask import Flask
 from flask_compress import Compress
@@ -5,6 +13,8 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from httpx import Client
+from schedule import every
+from schedule import run_pending
 from sentry_sdk import init
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
@@ -23,9 +33,6 @@ def create_app() -> Flask:
 
 app = create_app()
 
-from re import findall
-from re import sub
-from unicodedata import normalize
 
 print("defining helper functions...", end="", flush=True)
 
@@ -91,7 +98,7 @@ def readify(text):
 print("done")
 
 
-def scrape_data(client):
+def scrape_data(client=None):
     def scrape_catalog(client):
         # TODO: get quarter end dates for current quarter
         # print("scraping calendar...")
@@ -102,7 +109,7 @@ def scrape_data(client):
 
         print("scraping room data...", end="", flush=True)
         rooms = scrape_rooms(client)
-        print("done")
+        print("done\nbuilding pisa headers...")
         pisa = build_headers(client)
         print("done")
         return {"rooms": rooms, "template": pisa[0], "outbound": pisa[1]}
@@ -144,11 +151,11 @@ def scrape_data(client):
 
 
 def register_blueprints(app):
-    from app import errors
-    from app.blueprints.home import home
-    from app.blueprints.catalog import catalog, catalog_sources
-    from app.blueprints.food import food, food_sources
-    from app.blueprints.laundry import laundry, laundry_sources
+    from . import errors
+    from .blueprints.home import home
+    from .blueprints.catalog import catalog, catalog_sources
+    from .blueprints.food import food, food_sources
+    from .blueprints.laundry import laundry, laundry_sources
 
     print("fetching sources...", end="", flush=True)
     # TODO: better way of fetching sources
@@ -158,7 +165,7 @@ def register_blueprints(app):
         "/laundry": laundry_sources,
     }
     print("done")
-    # TODO: implement nested blueprints
+    # TODO: implement nested blueprints?
     print("registering blueprints...", end="", flush=True)
     app.register_blueprint(home)
     app.register_blueprint(catalog, url_prefix="/catalog")
@@ -194,3 +201,21 @@ with app.app_context():
     client = Client()
     # scrape_data(Client())
     sources = register_blueprints(app)
+    # print("registering event loops...", end="", flush=True)
+    # def run_continuously(interval=1):
+    #     cease_continuous_run = Event()
+
+    #     class ScheduleThread(Thread):
+    #         @classmethod
+    #         def run(cls):
+    #             while not cease_continuous_run.is_set():
+    #                 run_pending()
+    #                 sleep(interval)
+
+    #     continuous_thread = ScheduleThread()
+    #     continuous_thread.start()
+    #     return cease_continuous_run
+
+    # every().minute.do(scrape_data, client=Client())
+    # stop_run_continuously = run_continuously()
+    # print("done")

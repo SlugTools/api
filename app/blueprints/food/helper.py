@@ -23,7 +23,7 @@ def update(live, compare):
                 },
                 "busyness": {
                     "status": live["locHtml"]["summary"].split(" (")[0],
-                    "percent": live["percentage"] * 100,
+                    "percent": int(live["percentage"] * 100),
                 },
             },
             "subLocations": None,
