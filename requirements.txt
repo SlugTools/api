@@ -1,5 +1,7 @@
+# apscheduler
 beautifulsoup4
 cchardet
+# crontab
 deta
 flask
 flask-compress

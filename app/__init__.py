@@ -5,7 +5,6 @@ from threading import Thread
 from time import sleep
 from unicodedata import normalize
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from deta import Deta
 from flask import Flask
 from flask_compress import Compress
@@ -14,12 +13,14 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from httpx import Client
 from schedule import every
-from schedule import run_pending
 from sentry_sdk import init
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
 
 from config import Config
+
+# from apscheduler.schedulers.background import BackgroundScheduler
+# from crontab import CronTab
 
 
 # TODO: add option to disable data scraping
@@ -199,9 +200,10 @@ with app.app_context():
     laundryDB = deta.Base("laundry")
     print("done")
     client = Client()
-    # scrape_data(Client())
+    scrape_data(Client())
     sources = register_blueprints(app)
-    # print("registering event loops...", end="", flush=True)
+    print("registering event loops...", end="", flush=True)
+    every().day.at("00:00").do(scrape_data, client=Client())
     # def run_continuously(interval=1):
     #     cease_continuous_run = Event()
 
@@ -218,4 +220,4 @@ with app.app_context():
 
     # every().minute.do(scrape_data, client=Client())
     # stop_run_continuously = run_continuously()
-    # print("done")
+    print("done")

@@ -78,6 +78,7 @@ def get_ratings(name):
             "rating": content["avgRating"],
             "ratings": content["numRatings"],
             "difficulty": content["avgDifficulty"],
+            # FIXME: wouldRetake displays null if 0%
             "wouldRetake": round(content["wouldTakeAgainPercent"])
             if content["wouldTakeAgainPercent"]
             else None,
