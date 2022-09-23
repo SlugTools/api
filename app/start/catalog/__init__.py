@@ -43,9 +43,8 @@ def scrape_headers(client):
             if "input" in comp[last]:
                 del comp[last]["input"]
                 store.append(last)
-        elif i.name == "input":
-            if i.get("type") == "text":
-                comp[store[-1]][i["name"]] = ""
+        elif i.name == "input" and i.get("type") == "text":
+            comp[store[-1]][i["name"]] = ""
     # fill empty items with the last element of the last item
     last = ""
     for i in comp:

@@ -106,11 +106,10 @@ def get_term(inbound):
                 inbound.get("quarter").lower(),
                 quarters[inbound.get("quarter").lower()][1],
             ]
-    if inbound.get("year"):
-        if (
-            int(inbound.get("year")) <= year
-        ):  # FIXME: pisa could list a year ahead, not sure
-            year = int(inbound.get("year"))
+    if inbound.get("year") and (
+        int(inbound.get("year")) <= year
+    ):  # FIXME: pisa could list a year ahead, not sure
+        year = int(inbound.get("year"))
     if not inbound.get("quarter"):
         for i in quarters:
             if datetime.today().replace(year=year) < quarters[i][0].replace(year=year):
@@ -361,9 +360,8 @@ def get_classes_search(inbound, template, outbound):
                     outbound[keys[c]] = extract[0]
             c += 1
         else:
-            if i in inbound:  # .get() issue
-                if isinstance(inbound[i], (int, str)):
-                    outbound[keys[c]] = inbound[i]
+            if i in inbound and isinstance(inbound[i], (int, str)):
+                outbound[keys[c]] = inbound[i]
             c += 1
     # workaround for https://github.com/deta/deta-python/issues/77
     new = outbound.copy()

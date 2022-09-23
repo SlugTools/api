@@ -39,6 +39,5 @@ def get_sources():
     map, bps = {}, app.view_functions
     for i in bps:
         split = i.split(".")
-        if "." in i and split[0] not in ["static", "home"]:
-            if split[1] == "index":
-                map[f"/{split[0]}"] = bps[i].__doc__
+        if "." in i and split[0] not in ["static", "home"] and split[1] == "index":
+            map[f"/{split[0]}"] = bps[i].__doc__

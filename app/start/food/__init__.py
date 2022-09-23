@@ -32,9 +32,13 @@ def scrape_locations(client):
     soup = BeautifulSoup(page.text, "lxml")
     temp, matches = soup.find_all(["h2", "li"]), {}
     for index, value in enumerate(temp):
-        if index + 1 < len(temp) and index - 1 >= 0:
-            if temp[index - 1].name == "h2" and value.name == "li":
-                matches[temp[index - 1]] = value
+        if (
+            index + 1 < len(temp)
+            and index - 1 >= 0
+            and temp[index - 1].name == "h2"
+            and value.name == "li"
+        ):
+            matches[temp[index - 1]] = value
 
     # match nutrition and dining page locations
     for i in managed:
