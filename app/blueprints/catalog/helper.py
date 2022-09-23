@@ -106,11 +106,8 @@ def get_term(inbound):
                 inbound.get("quarter").lower(),
                 quarters[inbound.get("quarter").lower()][1],
             ]
-    if (
-        inbound.get("year")
-        and (
+    if inbound.get("year") and (
         int(inbound.get("year")) <= year
-    )
     ):  # FIXME: pisa could list a year ahead, not sure
         year = int(inbound.get("year"))
     if not inbound.get("quarter"):
