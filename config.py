@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 
-class Config(object):
+class Config:
     # FIXME: figure out dotenv
     load_dotenv()
     DETA_KEY = os.environ.get("DETA_KEY")
