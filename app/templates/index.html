@@ -7,7 +7,7 @@
     <script>
         function promtpGo(value, argument, url) {
             let input = prompt(`Enter a(n) \"${argument}\" argument:`, value);
-            if (input == null) { return; }
+            if (input.trim() == "") { console.log(input); return; }
             // TODO: urllib.parse.quote_plus imitation not functioning
             window.open(`${url}${encodeURIComponent(input)}`);
         }
@@ -26,5 +26,8 @@
             <p>{{ map[i]["routes"][j]["description"]|safe }}</p>
         {% endfor %}
     {% endfor %}
-    <footer><a href="https://simpleanalytics.com/?utm_source=api.slug.tools&utm_content=badge" referrerpolicy="origin" target="_blank"><img src="https://simpleanalyticsbadges.com/api.slug.tools?logo=fdc700&text=fdc700&background=003c6c" style="object-fit: scale-down; max-width: 25%;" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous"></a></footer>
+    <footer>
+        <p style="font-size: 15px;">CSS by <a href="https://erikboesen.com" target="_blank" rel="noopener noreferrer">Erik Boesen</a></p>
+        <a href="https://www.digitalocean.com/?refcode=6c62cf272692&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge"></a><a href="https://simpleanalytics.com/api.slug.tools?utm_source=api.slug.tools&utm_content=badge" referrerpolicy="origin" target="_blank"><img src="https://simpleanalyticsbadges.com/api.slug.tools?logo=fdc700&text=fdc700&background=003c6c" style="object-fit: scale-down; max-width: 25%;" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous"></a>
+    </footer>
 {% endblock %}

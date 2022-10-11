@@ -92,7 +92,8 @@ def scrape_locations(client):
     page = client.get("https://basicneeds.ucsc.edu/resources/on-campus-food.html")
     soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer(["h3", "p", "ul"]))
     # groups headers and child elements (location info page)
-    temp, matches = soup.find_all(["h3", "p", "ul"])[13:-5], {}
+    # FIXME: prone to change
+    temp, matches = soup.find_all(["h3", "p", "ul"])[17:-5], {}
     for index, value in enumerate(temp):
         if value.name == "h3":
             matches[temp[index]] = []

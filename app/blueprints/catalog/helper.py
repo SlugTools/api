@@ -32,10 +32,11 @@ def get_rooms_name(name, rooms):
     )
     titles, images = soup.find_all("h3"), []
     for i in soup.find_all("div", attrs={"class": "callout-right image"}):
+        # TODO: set first image as main image?
         images.append(
             {
                 "caption": readify(i.text.split(". ")[-1]),
-                "link": f"https://its.ucsc.edu/rooms/media-info/{i.find('img')['src']}",
+                "link": f"https://its.ucsc.edu/classrooms/media-info/{i.find('img')['src']}",
             }
         )
     master = {
