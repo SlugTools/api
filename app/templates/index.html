@@ -4,13 +4,8 @@
     <p>A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz. <b>Please read the GitHub <a href="https://github.slug.tools" target="_blank" rel="noopener noreferrer">organization</a> and <a href="https://github.slug.tools/api" target="_blank" rel="noopener noreferrer">repository</a> READMEs, as well as the <a href="sources">sources</a> before using this service.</b> Report any bugs, errors, and/or issues in the GitHub <a href="https://github.slug.tools/api" target="_blank" rel="noopener noreferrer">repository</a>.</p>
     <h1>Endpoints</h1>
     <p>All listed endpoints originate from the current URL and return a JSON response.</p>
-    <script>
-        function promtpGo(value, argument, url) {
-            let input = prompt(`Enter a(n) \"${argument}\" argument:`, value);
-            if (input.trim() == "") { console.log(input); return; }
-            // TODO: urllib.parse.quote_plus imitation not functioning
-            window.open(`${url}${encodeURIComponent(input)}`);
-        }
+    <script
+        src="{{ url_for('static', filename='js/prompt.js') }}">
     </script>
     {% for i in map %}
         <h3>{{ i }}</h3>

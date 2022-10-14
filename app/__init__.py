@@ -188,11 +188,11 @@ with app.app_context():
     deta = Deta(app.config["DETA_KEY"])
     # TODO: set up limits
     limiter = Limiter(app, key_func=get_remote_address)
-    # init(
-    #     dsn=app.config["SENTRY_SDK_DSN"],
-    #     integrations=[FlaskIntegration(), HttpxIntegration()],
-    #     traces_sample_rate=1.0,
-    # )
+    init(
+        dsn=app.config["SENTRY_SDK_DSN"],
+        integrations=[FlaskIntegration(), HttpxIntegration()],
+        traces_sample_rate=1.0,
+    )
     print("done")
     print("declaring databases...", end="", flush=True)
     catalogDB = deta.Base("catalog")
