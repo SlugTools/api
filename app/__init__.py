@@ -172,11 +172,8 @@ def register_blueprints(app):
     app.register_blueprint(catalog, url_prefix="/catalog")
     app.register_blueprint(food, url_prefix="/food")
     app.register_blueprint(laundry, url_prefix="/laundry")
-    # TODO: metro endpoint; https://www.scmtd.com/sen/routes/schedule
     # app.register_blueprint(metro, url_prefix="/metro")
-    # TODO: weather endpoint
     # app.register_blueprint(weather, url_prefix="/weather")
-    # TODO: maybe an instructional calender blueprint?
     print("done")
     return sources
 
@@ -186,7 +183,7 @@ with app.app_context():
     Compress(app)
     CORS(app)
     deta = Deta(app.config["DETA_KEY"])
-    # TODO: set up limits
+    # TODO: review limits
     limiter = Limiter(app, key_func=get_remote_address)
     init(
         dsn=app.config["SENTRY_SDK_DSN"],
@@ -221,3 +218,37 @@ with app.app_context():
     # every().minute.do(scrape_data, client=Client())
     # stop_run_continuously = run_continuously()
     print("done")
+
+# general app TODOs
+# TODO: metro info - https://www.scmtd.com/sen/routes/schedule
+# TODO: weather info - local
+# TODO: library room booking wait times
+# TODO: instructional calender info
+# TODO: cbord get app integration
+# TODO: synchronize aborts (203's, etc.) across all blueprints
+# TODO: set up custom errors for abort() calls
+# TODO: configure sentry and newrelic
+# TODO: use markupsafe to parse arguments/headers
+# TODO: fix all deep source errors
+# TODO: push pr for thunder folder
+# TODO: advertise through fresh paint etc.
+# TODO: google seo
+# TODO: cut out all post requests, cuz no modification on local end
+# TODO: use Soup Strainer for all?
+# TODO: set up flask monitoring dashboard
+# TODO: migrate to quart (use async data, sentry-sdk[quart])
+
+# implement
+# flask-mail # emailer
+# laundry view # laundry viewer
+# # implement later
+# flask-wtf # form validation
+# celery database # queue workers
+# flask-migrate # database migrations
+# flask-sqlalchemy # database
+# gunicorn # web server
+# hiredis # C client for Redis
+# psycopg2 # DB API for PostgreSQL
+# redis# queue for database
+# pyjwt # JSON web tokens
+# flask-cas # CAS authentication with CBORD

@@ -11,6 +11,8 @@ from httpx import Client
 from round_nutrition import Main
 from thefuzz.process import extractOne
 
+from app import readify
+
 
 def update(live, compare):
     if live["isOpen"]:
@@ -175,7 +177,7 @@ def scrape_item(id, comply=True):
     complete = ""
     soup = BeautifulSoup(url.text, "lxml", parse_only=SoupStrainer("tr"))
     for i in soup.find("td"):
-        complete += sub(" +", " ", normalize("NFKD", i.text).replace("\n", "").strip())
+        complete += readify(i.text)
 
     # TODO: hardcoded for now; maybe try to fetch keywords from scraped; might be a stretch
     keywords = [
