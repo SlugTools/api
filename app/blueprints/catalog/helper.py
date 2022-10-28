@@ -285,12 +285,12 @@ def get_classes_search(inbound, template, outbound):
     for i in template:
         if isinstance(template[i], dict):
             # compromise
-            hasSubLevels = False
+            hasSubLevs = False
             for j in template[i]:
                 if isinstance(template[i][j], dict):
-                    hasSubLevels = True
+                    hasSubLevs = True
                     break
-            if hasSubLevels:
+            if hasSubLevs:
                 # default to value parameter if no dictionary
                 if isinstance(inbound.get(i), (int, str)):
                     # compromise for matching
@@ -322,7 +322,7 @@ def get_classes_search(inbound, template, outbound):
                             ):
                                 outbound[keys[c]] = inbound[i][j]
                             c += 1
-                continue  # debugging for a solid hour got me to add this line
+                continue
             else:
                 # special cases
                 if isinstance(inbound.get(i), dict):
@@ -384,9 +384,9 @@ def get_classes_search(inbound, template, outbound):
         ),
         {},
     )
-    all = soup.find_all("div", attrs={"class": "panel panel-default row"})
-    all = all if all else abort(404)
-    for i in all:
+    all_ = soup.find_all("div", attrs={"class": "panel panel-default row"})
+    all_ = all_ if all_ else abort(404)
+    for i in all_:
         head = i.find(
             "div", attrs={"class": "panel-heading panel-heading-custom"}
         ).find("h2")

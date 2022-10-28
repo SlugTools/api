@@ -1,7 +1,6 @@
 from re import findall
 from re import sub
 from threading import Event
-from threading import Thread
 from time import sleep
 from unicodedata import normalize
 
@@ -157,6 +156,7 @@ def register_blueprints(app):
     from .blueprints.catalog import catalog, catalog_sources
     from .blueprints.food import food, food_sources
     from .blueprints.laundry import laundry, laundry_sources
+    from .blueprints.weather import weather, weather_sources
 
     print("fetching sources...", end="", flush=True)
     # TODO: better way of fetching sources
@@ -164,6 +164,7 @@ def register_blueprints(app):
         "/catalog": catalog_sources,
         "/food": food_sources,
         "/laundry": laundry_sources,
+        "/weather": weather_sources,
     }
     print("done")
     # TODO: implement nested blueprints?
@@ -173,7 +174,7 @@ def register_blueprints(app):
     app.register_blueprint(food, url_prefix="/food")
     app.register_blueprint(laundry, url_prefix="/laundry")
     # app.register_blueprint(metro, url_prefix="/metro")
-    # app.register_blueprint(weather, url_prefix="/weather")
+    app.register_blueprint(weather, url_prefix="/weather")
     print("done")
     return sources
 
@@ -185,11 +186,11 @@ with app.app_context():
     deta = Deta(app.config["DETA_KEY"])
     # TODO: review limits
     limiter = Limiter(app, key_func=get_remote_address)
-    init(
-        dsn=app.config["SENTRY_SDK_DSN"],
-        integrations=[FlaskIntegration(), HttpxIntegration()],
-        traces_sample_rate=1.0,
-    )
+    # init(
+    #     dsn=app.config["SENTRY_SDK_DSN"],
+    #     integrations=[FlaskIntegration(), HttpxIntegration()],
+    #     traces_sample_rate=1.0,
+    # )
     print("done")
     print("declaring databases...", end="", flush=True)
     catalogDB = deta.Base("catalog")
@@ -197,7 +198,7 @@ with app.app_context():
     laundryDB = deta.Base("laundry")
     print("done")
     client = Client()
-    scrape_data(Client())
+    # scrape_data(Client())
     sources = register_blueprints(app)
     print("registering event loops...", end="", flush=True)
     every().day.at("00:00").do(scrape_data, client=Client())
