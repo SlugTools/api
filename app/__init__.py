@@ -105,7 +105,7 @@ def scrape_data(client=None):
         # page = client.get("https://registrar.ucsc.edu/calendar/future.html")
         # soup = BeautifulSoup(page.text, "lxml", SoupStrainer(["h3", "td"]))
         # print(soup)
-        from .start.catalog import scrape_rooms, build_headers
+        from .start.catalog import build_headers, scrape_rooms
 
         print("scraping room data...", end="", flush=True)
         rooms = scrape_rooms(client)
@@ -152,9 +152,9 @@ def scrape_data(client=None):
 
 def register_blueprints(app):
     from . import errors
-    from .blueprints.home import home
     from .blueprints.catalog import catalog, catalog_sources
     from .blueprints.food import food, food_sources
+    from .blueprints.home import home
     from .blueprints.laundry import laundry, laundry_sources
     from .blueprints.weather import weather, weather_sources
 
@@ -194,6 +194,7 @@ with app.app_context():
     print("done")
     print("declaring databases...", end="", flush=True)
     catalogDB = deta.Base("catalog")
+    currTerm = list(catalogDB.get("template")["02term"].values())[-1]
     foodDB = deta.Base("food")
     laundryDB = deta.Base("laundry")
     print("done")

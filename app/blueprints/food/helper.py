@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from bs4 import SoupStrainer
 from flask import abort
 from httpx import Client
-from round_nutrition import Main
+from round_nutrition import *
 from thefuzz.process import extractOne
 
 from app import readify
@@ -93,18 +93,17 @@ def update_locations_id(locations, id):
 
 
 def round_comply(values):
-    a = Main()
     functions = [
-        a.calories,
-        a.tot_fat,
-        a.sat_fat,
-        a.trans_fat,
-        partial(a.cholesterol, minimal=True),
-        a.sodium,
-        partial(a.tot_carb, minimal=True),
-        partial(a.dietary_fiber, minimal=True),
-        partial(a.tot_sugars, minimal=True),
-        partial(a.protein, minimal=True),
+        calories,
+        tot_fat,
+        sat_fat,
+        trans_fat,
+        partial(cholesterol, minimal=True),
+        sodium,
+        partial(tot_carb, minimal=True),
+        partial(dietary_fiber, minimal=True),
+        partial(tot_sugars, minimal=True),
+        partial(protein, minimal=True),
     ]
     return [f(v) for f, v in zip(functions, values)]
 

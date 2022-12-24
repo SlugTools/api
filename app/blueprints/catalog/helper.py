@@ -10,6 +10,7 @@ from httpx import post
 from orjson import loads
 from thefuzz.process import extractOne
 
+from app import currTerm
 from app import force_to_int
 from app import parse_days_times
 from app import readify
@@ -94,29 +95,26 @@ def get_term(inbound):
     year = int(datetime.now().strftime("%Y"))
     # TODO: fetch from calendar, currently hardcoded
     quarters, hold = {
-        "winter": [datetime(year, 3, 24), 2],
-        "spring": [datetime(year, 6, 15), 4],
-        "summer": [datetime(year, 9, 1), 6],
-        "fall": [datetime(year, 12, 9), 10],
+        "winter": 2,
+        "spring": 4,
+        "summer": 6,
+        "fall": 10,
     }, []
     if inbound.get("quarter"):
-        if not quarters.get(inbound.get("quarter").lower()):
+        if not quarters.get(inbound["quarter"].lower()):
             abort(400)
         else:
             hold = [
-                inbound.get("quarter").lower(),
-                quarters[inbound.get("quarter").lower()][1],
+                inbound["quarter"].lower(),
+                quarters[inbound["quarter"].lower()][1],
             ]
     if inbound.get("year") and (
-        int(inbound.get("year")) <= year
+        int(inbound["year"]) - 1 <= year
     ):  # FIXME: pisa could list a year ahead, not sure
-        year = int(inbound.get("year"))
+        year = int(inbound["year"])
     if not inbound.get("quarter"):
-        for i in quarters:
-            if datetime.today().replace(year=year) < quarters[i][0].replace(year=year):
-                hold.append(i)
-                hold.append(quarters[i][1])
-                break
+        spl = currTerm.split()
+        year, hold = int(spl[0]), [spl[1], quarters[spl[1].lower()]]
     quarter, code = hold[0], 2048 + ((year % 100 - 5) * 10) + hold[1]
     # code += 4 # TODO: figure out how pisa changes selected option
     return (
