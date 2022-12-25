@@ -1,13 +1,14 @@
 # Contributing
 
-The [`main`](https://github.slug.tools/api/tree/main) branch is deployed to production. Any contributions should be wary of and directed towards the [`dev`](https://github.slug.tools/api/tree/dev) branch which will be pushed to `main` branch every now and then.
+Any contributions should be directed towards the [`main`](https://github.slug.tools/api) branch. The [`deploy`](https://github.slug.tools/api) branch will be rebased here and there.
 
 ## Run
 
 Clone this repository, create, and activate a Python virtual environment with:
 
 ```bash
-python -m venv venv
+git clone https://github.slug.tools/api
+cd api && python -m venv venv
 source venv/bin/activate
 ```
 
