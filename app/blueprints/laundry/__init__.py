@@ -1,10 +1,8 @@
-from flask import abort
-from flask import Blueprint
-from flask import redirect
-from flask import request
+from flask import Blueprint, abort, redirect, request
+
+from app import laundryDB
 
 from .helper import *
-from app import laundryDB
 
 laundry = Blueprint("laundry", __name__)
 laundry_sources = {"LaundryView": "https://www.laundryview.com"}

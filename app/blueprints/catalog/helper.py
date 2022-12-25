@@ -2,18 +2,13 @@ from datetime import datetime
 from re import compile
 from urllib.parse import quote_plus
 
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer
 from flask import abort
-from httpx import get
-from httpx import post
+from httpx import get, post
 from orjson import loads
 from thefuzz.process import extractOne
 
-from app import currTerm
-from app import force_to_int
-from app import parse_days_times
-from app import readify
+from app import currTerm, force_to_int, parse_days_times, readify
 
 
 # TODO: add name

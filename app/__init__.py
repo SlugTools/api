@@ -1,5 +1,4 @@
-from re import findall
-from re import sub
+from re import findall, sub
 from threading import Event
 from time import sleep
 from unicodedata import normalize

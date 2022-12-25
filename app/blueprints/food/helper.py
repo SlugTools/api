@@ -1,11 +1,9 @@
 from functools import partial
-from re import findall
-from re import sub
+from re import findall, sub
 from unicodedata import normalize
 from urllib.parse import quote_plus
 
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer
 from flask import abort
 from httpx import Client
 from round_nutrition import *

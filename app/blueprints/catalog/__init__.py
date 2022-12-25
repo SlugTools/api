@@ -1,15 +1,10 @@
 from re import search
 
-from flask import abort
-from flask import Blueprint
-from flask import redirect
-from flask import request
+from flask import Blueprint, abort, redirect, request
+
+from app import catalogDB, condense_args, limiter, melt
 
 from .helper import *
-from app import catalogDB
-from app import condense_args
-from app import limiter
-from app import melt
 
 catalog = Blueprint("catalog", __name__)
 catalog_sources = {

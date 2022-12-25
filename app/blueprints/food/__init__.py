@@ -1,12 +1,9 @@
-from flask import abort
-from flask import Blueprint
-from flask import redirect
-from flask import request
+from flask import Blueprint, abort, redirect, request
 from thefuzz.process import extractOne
 
+from app import condense_args, foodDB
+
 from .helper import *
-from app import condense_args
-from app import foodDB
 
 food = Blueprint("food", __name__)
 food_sources = {

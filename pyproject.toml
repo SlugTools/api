@@ -1,9 +1,9 @@
 [tool.pdm]
 
 [project]
-name = ""
+name = "SlugTools API"
 version = ""
-description = ""
+description = "Simple REST API to return compiled data on university services "
 authors = [
     {name = "Harsh Dadhich", email = "hdadhich01@gmail.com"},
 ]

@@ -1,9 +1,7 @@
 from datetime import datetime
-from urllib.parse import parse_qs
-from urllib.parse import quote_plus
+from urllib.parse import parse_qs, quote_plus
 
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
+from bs4 import BeautifulSoup, SoupStrainer
 from httpx import Client
 from thefuzz.process import extract
 

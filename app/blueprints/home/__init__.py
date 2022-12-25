@@ -1,6 +1,4 @@
-from flask import Blueprint
-from flask import redirect
-from flask import render_template
+from flask import Blueprint, redirect, render_template
 
 from .helper import *
 

@@ -1,6 +1,4 @@
-from bs4 import BeautifulSoup
-from bs4 import NavigableString
-from bs4 import SoupStrainer
+from bs4 import BeautifulSoup, NavigableString, SoupStrainer
 
 from app import camel_case
 
