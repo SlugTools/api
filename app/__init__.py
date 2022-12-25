@@ -53,7 +53,7 @@ def condense_args(request, lower=False):
 
 
 def force_to_int(text):
-    if any([c.isdigit() for c in text]):
+    if any(c.isdigit() for c in text):
         return int(sub(r"\D", "", text))
     return text
 
