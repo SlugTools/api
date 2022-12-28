@@ -1,8 +1,10 @@
-[tool.pdm]
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"
 
 [project]
 name = "SlugTools API"
-description = "Simple REST API to return compiled data on university services "
+description = "🔧 Simple REST API to return compiled data on university services"
 authors = [
     {name = "Harsh Dadhich", email = "hdadhich01@gmail.com"},
 ]
@@ -10,6 +12,4 @@ dependencies = ["beautifulsoup4", "cchardet", "deta", "flask", "flask-compress",
 requires-python = ">=3.10"
 license = {text = "MIT"}
 
-[build-system]
-requires = ["pdm-pep517>=1.0.0"]
-build-backend = "pdm.pep517.api"
+[tool.pdm]
