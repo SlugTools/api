@@ -16,7 +16,7 @@ dependencies = [
     "lxml",
     "orjson",
     "python-dotenv",
-    "round-nutrition",
+    "round-nutrition>=1.1.1",
     "schedule",
     "sentry-sdk[flask]",
     "thefuzz[speedup]",

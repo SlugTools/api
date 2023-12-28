@@ -26,6 +26,7 @@ def locations():
     """Retrieve current locational data for all on-campus dining/eatery locations."""
     locations = foodDB.get("locations")
     del locations["key"]
+    return locations
     return update_locations(locations)
 
 

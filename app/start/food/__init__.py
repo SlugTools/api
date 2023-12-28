@@ -13,7 +13,7 @@ from app import readify
 # TODO: periodic scraping
 
 
-# convert from Google Maps Embed API URL to Google Maps URL
+# Google Maps Embed API URL to Google Maps URL
 def embed_to_reg_url(embed):
     pattern_lat = re.compile(r"!2d(.*?)!")
     pattern_long = re.compile(r"!3d(.*?)!")
@@ -30,119 +30,117 @@ def embed_to_reg_url(embed):
     return f"https://www.google.com/maps?q={place}&ll={lat},{long}&z=15"
 
 
-# TODO: scrape hours (hidden tags on page); maybe through Waitz (visible on mobile app)
-# TODO: scrape street food (https://financial.ucsc.edu/Pages/Food_Trucks.aspx)
-# TODO: scrape basic needs (https://basicneeds.ucsc.edu/food/on-campus-food.html)
-# TODO: special case for UCen Bistro reservations (https://dining.ucsc.edu/university-center-bistro-cafe/index.html)
-def scrape_locations(client):
-    locs, ids = {}, []
-    menu_site = "https://nutrition.sa.ucsc.edu/"
-    page = client.get(menu_site).text
-    soup = BeautifulSoup(page, "lxml", parse_only=SoupStrainer("a"))
+# dine site (all locations) = dining.ucsc.edu/eat
+# nutrition site (managed locations) = nutrition.sa.ucsc.edu
+
+
+# nutrition site
+def build_managed_loc(menu_site, soup):
+    locs = {}
+
     for i in soup:
         if "location" in i["href"]:
             params = parse_qs(i["href"])
-            id = int(params["locationNum"][0])
-            name = params["locationName"][0]
-            ids.append(id)
-            locs[params["locationName"][0]] = {
-                "id": int(params["locationNum"][0]),
+            location_id = int(params["locationNum"][0])
+            location_name = params["locationName"][0]
+            locs[location_name] = {
+                "id": location_id,
                 "url": f"{menu_site}{i['href']}",
-                "name": name,
-                # if managed by UCSC
+                "name": location_name,
                 "managed": True,
             }
 
+    # FIXME: workaround for UCen Bistro / UCen Cafe
     locs["University Center Cafe"] = locs.pop("UCen Coffee Bar")
+    return locs
 
-    page = client.get("https://dining.ucsc.edu/eat/")
-    soup = BeautifulSoup(page, "lxml")
-    temp, matches = soup.find_all(["h2", "li", "table"]), {}
 
-    # parse <li> tag (meta data of location)
-    def meta(li):
-        spl = li.find("p").text.split("✆")
-        embed = li.find("a", {"class": "btn btn-primary fancybox fancybox.iframe"})[
-            "href"
-        ]
-        return {
-            "description": readify(spl[0]),
-            "iframe": embed_to_reg_url(embed),
-            "phone": readify(spl[1])[:14] if len(spl) > 1 else None,
-        }
+# dine site
+def parse_location_meta(li):
+    spl = li.find("p").text.split("✆")
+    embed = li.find("a", {"class": "btn btn-primary fancybox fancybox.iframe"})["href"]
+    return {
+        "description": readify(spl[0]),
+        "map": embed_to_reg_url(embed),
+        "phone": readify(spl[1])[:14] if len(spl) > 1 else None,
+    }
 
-    # # just print tags of temp
-    # for i in temp:
-    #     print(i.name)
-    #     print(i.text)
 
-    # match b/w two sites
+# dine site loc = nutrition site loc
+def handle_direct_match(locs, name, info, menu_site):
+    if locs.get(name):
+        locs[name].update(parse_location_meta(info))
+    else:
+        handle_fuzzy_match(locs, name, info, menu_site)
+
+
+# dine site loc ≈ nutrition site loc
+# or dine site subloc of nutrition site loc
+# (e.g. Perk: PSB, E&M, etc.)
+def handle_fuzzy_match(locs, name, info, menu_site):
+    limit = " ".join(name.split()[:3])
+    match = extractOne(limit, locs.keys())
+
+    hold = locs[match[0]]
+    locs[name] = {**hold, **parse_location_meta(info)}
+
+    if len(hold) == 2:
+        del locs[match[0]]
+
+
+# dine site loc != nutrition site loc
+def build_unmanaged_loc(locs, name, info):
+    # gen random non-existing id
+    while True:
+        id = randint(10, 99)
+        if id not in locs.keys():
+            break
+
+    url = info.find("a", {"class": "btn btn-info"})["href"]
+    url = f"https://dining.ucsc.edu{url[2:]}" if url.startswith("..") else url
+
+    locs[name] = {
+        "id": id,
+        "url": url,
+        "name": name,
+        "managed": False,
+        **parse_location_meta(info),
+    }
+
+
+def extract_location_info(temp, locs, menu_site):
     for i, j in enumerate(temp):
         info = temp[i + 1]
         menuBtn = info.find("a", {"class": "btn btn-info"})
-        # only proceed if more locations to iter through
-        if j.name == "h2" and menuBtn:
-            # print(j.text.strip())
-            if menuBtn["href"] == menu_site:
-                # direct match (dhs)
-                locName = j.text.strip()
-                # print(locName)
-                if locs.get(locName):
-                    locs[locName].update(meta(info))
-                # fuzzy match (other)
-                else:
-                    # print(locName)
-                    limit = " ".join(locName.split()[:3])
-                    match = extractOne(limit, locs.keys())
-                    print(limit, match)
-                    # pprint(locs, sort_dicts=False)
-                    # implement already added check
-                    hold = locs[match[0]]
-                    # print(hold, len(hold))
-                    locs[locName] = {**hold, **meta(info)}
-                    if len(hold) == 2:
-                        del locs[match[0]]
-            # not on ucsc menu site
-            # cafe pdfs, and iveta
-            else:
-                # on god what am i doing
-                # random id gen
-                while True:
-                    id = randint(10, 99)
-                    if id not in locs.keys():
-                        break
 
-                url = info.find("a", {"class": "btn btn-info"})["href"]
-                url = (
-                    f"https://dining.ucsc.edu{url[2:]}" if url.startswith("..") else url
-                )
-                name = j.text.strip()
-                locs[name] = {
-                    "id": id,
-                    "url": url,
-                    "name": name,
-                    "managed": False,
-                    **meta(info),
-                }
+        if j.name == "h2" and menuBtn:
+            name = j.text.strip()
+
+            if menuBtn["href"] == menu_site:
+                handle_direct_match(locs, name, info, menu_site)
+            else:
+                build_unmanaged_loc(locs, name, info)
+
         if i == len(temp) - 2:
             break
 
-    # pprint(locs)
-    import json
 
-    with open("app/start/food/new.json", "w") as f:
-        json.dump(locs, f, indent=4)
+def scrape_locations(client):
+    locs = {}
+    menu_site = "https://nutrition.sa.ucsc.edu/"
+
+    page = client.get(menu_site)
+    soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("a"))
+
+    locs = build_managed_loc(menu_site, soup)
+
+    page = client.get("https://dining.ucsc.edu/eat/")
+    soup = BeautifulSoup(page.text, "lxml")
+    temp = soup.find_all(["h2", "li", "table"])
+
+    extract_location_info(temp, locs, menu_site)
 
     return locs
-
-    # streetFood uses https://financial.ucsc.edu/Pages/Food_Trucks.aspx
-    # unable to scrape through microsoft soap POST request
-    # options like requests_html, html2pdf, pdfkit, etc. too heavy
-    # FIXME: find non-intensive method of scraping streetFood
-    # possible solutions:
-    # - request data from a public repl hosting selenium scraping code
-    # - try screenshot and ocring webpage on a loop
-    # - try ratemyprof repo method, simple get requests
 
     # unmanaged = {"streetFood": [], "other": []}
     # page = client.get("https://basicneeds.ucsc.edu/resources/on-campus-food.html")
@@ -180,7 +178,7 @@ def scrape_locations(client):
     # return master
 
 
-# TODO: task loop to run @ 12:00AM
+# TODO: optimize and break into smaller funcs for readability
 def scrape_menus_items(client, locs, date=datetime.now().strftime("%m-%d-%Y")):
     client, menus, items = (
         Client(base_url="https://nutrition.sa.ucsc.edu/", verify=False),

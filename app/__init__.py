@@ -32,7 +32,6 @@ def create_app() -> Flask:
 
 app = create_app()
 
-
 print("defining helper functions...", end="", flush=True)
 
 
@@ -184,7 +183,7 @@ with app.app_context():
     CORS(app)
     deta = Deta(app.config["DETA_KEY"])
     # TODO: review limits
-    limiter = Limiter(app, key_func=get_remote_address)
+    limiter = Limiter(get_remote_address, app=app)
     # init(
     #     dsn=app.config["SENTRY_SDK_DSN"],
     #     integrations=[FlaskIntegration(), HttpxIntegration()],
