@@ -61,15 +61,13 @@ def update(live, compare):
 
 
 def update_locations(locations):
-    client = Client(base_url="https://waitz.io/")
-    live = client.get("live/ucsc").json()["data"]
+    client = Client(base_url="https://waitz.io")
+    live = client.get("/live/ucsc").json()["data"]
     compare = client.get("compare/ucsc").json()["data"]
     names = {i: j["name"] for i, j in enumerate(live)}
-    for i in locations["managed"]["diningHalls"]:
-        match = extractOne(locations["managed"]["diningHalls"][i]["name"], names)
-        locations["managed"]["diningHalls"][i] |= update(
-            live[match[2]], compare[match[2]]
-        )
+    for i in locations:
+        match = extractOne(i, names)
+        locations[i] |= update(live[match[2]], compare[match[2]])
     return locations
 
 

@@ -1,15 +1,32 @@
-[build-system]
-build-backend = "pdm.pep517.api"
-requires = ["pdm-pep517>=1.0.0"]
-
 [project]
 authors = [
-  {name = "Harsh Dadhich", email = "hdadhich01@gmail.com"}
+    {name = "Harsh Dadhich", email = "hdadhich01@gmail.com"},
 ]
-dependencies = ["beautifulsoup4", "cchardet", "deta", "flask", "flask-compress", "flask-cors", "flask-limiter", "gunicorn", "httpx", "humanize", "lxml", "orjson", "python-dotenv", "round-nutrition", "schedule", "sentry-sdk[flask]", "thefuzz[speedup]"]
-description = "🔧 Simple REST API to return compiled data on university services"
+dependencies = [
+    "beautifulsoup4",
+    "cchardet",
+    "deta",
+    "flask",
+    "flask-compress",
+    "flask-cors",
+    "flask-limiter",
+    "gunicorn",
+    "httpx",
+    "humanize",
+    "lxml",
+    "orjson",
+    "python-dotenv",
+    "round-nutrition",
+    "schedule",
+    "sentry-sdk[flask]",
+    "thefuzz[speedup]",
+]
+description = "Default template for PDM package"
 license = {text = "MIT"}
-name = "SlugTools API"
-requires-python = ">=3.10"
+name = "api"
+requires-python = "==3.10.*"
+version = "0.1.0"
+readme = "README.md"
 
 [tool.pdm]
+package-type = "application"

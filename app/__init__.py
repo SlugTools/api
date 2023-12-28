@@ -91,13 +91,13 @@ def parse_days_times(text):
 
 
 def readify(text):
-    return sub(" +", " ", normalize("NFKD", text).replace("\n", "")).strip()
+    return sub(" +", " ", normalize("NFKC", text).replace("\n", "")).strip()
 
 
 print("done")
 
 
-def scrape_data(client=None):
+def scrape_data(client):
     def scrape_catalog(client):
         # TODO: get quarter end dates for current quarter
         # print("scraping calendar...")
@@ -108,7 +108,7 @@ def scrape_data(client=None):
 
         print("scraping room data...", end="", flush=True)
         rooms = scrape_rooms(client)
-        print("done\nbuilding pisa headers...")
+        print("done")
         pisa = build_headers(client)
         print("done")
         return {"rooms": rooms, "template": pisa[0], "outbound": pisa[1]}
@@ -193,15 +193,15 @@ with app.app_context():
     print("done")
     print("declaring databases...", end="", flush=True)
     catalogDB = deta.Base("catalog")
-    currTerm = list(catalogDB.get("template")["02term"].values())[-1]
     foodDB = deta.Base("food")
     laundryDB = deta.Base("laundry")
     print("done")
-    client = Client()
-    # scrape_data(Client())
+    client = Client(verify=False)
+    scrape_data(client)
+    currTerm = list(catalogDB.get("template")["02term"].values())[-1]
     sources = register_blueprints(app)
-    print("registering event loops...", end="", flush=True)
-    every().day.at("00:00").do(scrape_data, client=Client())
+    # print("registering event loops...", end="", flush=True)
+    # every().day.at("00:00").do(scrape_data, client=Client())
     # def run_continuously(interval=1):
     #     cease_continuous_run = Event()
 
