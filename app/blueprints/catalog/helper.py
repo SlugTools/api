@@ -20,7 +20,7 @@ def get_rooms_name(name, rooms):
             "The argument 'name' should contain numbers to indicate a specific room.",
         )
     # FIXME: global threshold for extractOne has been 85, this one is more lenient
-    page = get(rooms[res[0]]) if res[1] > 60 else abort(404)
+    page = get(rooms[res[0]], verify=False) if res[1] > 60 else abort(404)
     soup = BeautifulSoup(
         page.text,
         "lxml",
@@ -51,7 +51,8 @@ def get_rooms_name(name, rooms):
 def get_ratings(name):
     # FIXME: sid possibly prone to change
     page = get(
-        f"https://www.ratemyprofessors.com/search/teachers?query={quote_plus(name)}&sid=1078"
+        f"https://www.ratemyprofessors.com/search/teachers?query={quote_plus(name)}&sid=1078",
+        verify=False,
     )
     soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("script"))
     content = {}

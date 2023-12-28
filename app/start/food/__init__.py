@@ -1,7 +1,8 @@
+import re
 from datetime import datetime
 from pprint import pprint
 from random import randint
-from urllib.parse import parse_qs, quote_plus
+from urllib.parse import parse_qs, quote_plus, urlparse
 
 from bs4 import BeautifulSoup, SoupStrainer
 from httpx import Client
@@ -10,6 +11,23 @@ from thefuzz.process import extract, extractOne
 from app import readify
 
 # TODO: periodic scraping
+
+
+# convert from Google Maps Embed API URL to Google Maps URL
+def embed_to_reg_url(embed):
+    pattern_lat = re.compile(r"!2d(.*?)!")
+    pattern_long = re.compile(r"!3d(.*?)!")
+    pattern_place = re.compile(r"!2s(.*?)!")
+
+    match_lat = pattern_lat.search(embed)
+    match_long = pattern_long.search(embed)
+    match_place = pattern_place.search(embed)
+
+    lat = match_lat.group(1)
+    long = match_long.group(1)
+    place = match_place.group(1)
+
+    return f"https://www.google.com/maps?q={place}&ll={lat},{long}&z=15"
 
 
 # TODO: scrape hours (hidden tags on page); maybe through Waitz (visible on mobile app)
@@ -44,11 +62,12 @@ def scrape_locations(client):
     # parse <li> tag (meta data of location)
     def meta(li):
         spl = li.find("p").text.split("✆")
+        embed = li.find("a", {"class": "btn btn-primary fancybox fancybox.iframe"})[
+            "href"
+        ]
         return {
             "description": readify(spl[0]),
-            "iframe": li.find(
-                "a", {"class": "btn btn-primary fancybox fancybox.iframe"}
-            )["href"],
+            "iframe": embed_to_reg_url(embed),
             "phone": readify(spl[1])[:14] if len(spl) > 1 else None,
         }
 
