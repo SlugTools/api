@@ -1,8 +1,6 @@
-# apscheduler
 beautifulsoup4
-cchardet
-# crontab
 deta
+faust-cchardet
 flask
 flask-compress
 flask-cors
