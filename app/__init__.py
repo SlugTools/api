@@ -106,7 +106,7 @@ with app.app_context():
     # TODO: review limits
     limiter = Limiter(get_remote_address, app=app)
     # init(
-    #     dsn=app.config["SENTRY_SDK_DSN"],
+    #     dsn=app.config["SENTRY_DSN"],
     #     integrations=[FlaskIntegration(), HttpxIntegration()],
     #     traces_sample_rate=1.0,
     # )
