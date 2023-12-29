@@ -4,9 +4,8 @@ authors = [
 ]
 dependencies = [
   "beautifulsoup4",
-  "cchardet",
-  "cython",
   "deta",
+  "faust-cchardet",
   "flask",
   "flask-compress",
   "flask-cors",
