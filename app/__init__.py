@@ -8,10 +8,10 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from httpx import Client
-from schedule import every
 
 from config import Config
 
+# from schedule import every
 # from sentry_sdk import init
 # from sentry_sdk.integrations.flask import FlaskIntegration
 # from sentry_sdk.integrations.httpx import HttpxIntegration

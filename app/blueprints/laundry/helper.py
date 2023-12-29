@@ -20,7 +20,7 @@ def update(id, client):
 def update_rooms(rooms):
     client = Client(base_url="https://www.laundryview.com/api")
     for i in rooms:
-        rooms[i] != update(i, client)
+        rooms[i] |= update(i, client)
     return rooms
 
 

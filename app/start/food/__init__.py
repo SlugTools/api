@@ -242,46 +242,46 @@ def scrape_menus_items(client, locs, date=datetime.now().strftime("%m-%d-%Y")):
                             menu["long"][meal][course][item_id] = name_price
                             hold[item_id] = name_price
 
-            # short scraping
-            if locs[i].get(j):
-                for k in short_soup.find_all(
-                    "div",
-                    {
-                        "class": [
-                            "shortmenumeals",
-                            "shortmenucats",
-                            ["shortmenurecipes"],
-                        ]
-                    },
-                ):  # meal(s), course(s), item(s)
-                    if k["class"][0] == "shortmenumeals":
-                        menu["short"][k.text] = {}
-                    elif k["class"][0] == "shortmenucats":
-                        menu["short"][list(menu["short"].keys())[-1]][
-                            k.text.split("--")[1].strip()
-                        ] = {}
-                    else:
-                        meal = list(menu["short"].keys())[-1]
-                        course = list(menu["short"][meal].keys())[-1]
-                        # FIXME: ValueError: 'Cheese Sauce' is not in list
-                        try:
-                            menu["short"][meal][course][
-                                list(hold.keys())[
-                                    list(hold.values()).index(readify(k.text))
-                                ]
-                            ] = readify(k.text)
-                        except:
-                            pass
-            items |= hold
-            # short and long menu attachment
-            wipe = True
-            for m in menu["short"]:
-                if menu["short"][m]:
-                    wipe = False
-                else:
-                    menu["short"][m] = None
-            # FIXME: clickable URL returns error because requires base cache
-            menus[i][j]["menu"] = None if wipe else menu
+            # # short scraping
+            # if locs[i].get(j):
+            #     for k in short_soup.find_all(
+            #         "div",
+            #         {
+            #             "class": [
+            #                 "shortmenumeals",
+            #                 "shortmenucats",
+            #                 ["shortmenurecipes"],
+            #             ]
+            #         },
+            #     ):  # meal(s), course(s), item(s)
+            #         if k["class"][0] == "shortmenumeals":
+            #             menu["short"][k.text] = {}
+            #         elif k["class"][0] == "shortmenucats":
+            #             menu["short"][list(menu["short"].keys())[-1]][
+            #                 k.text.split("--")[1].strip()
+            #             ] = {}
+            #         else:
+            #             meal = list(menu["short"].keys())[-1]
+            #             course = list(menu["short"][meal].keys())[-1]
+            #             # FIXME: ValueError: 'Cheese Sauce' is not in list
+            #             try:
+            #                 menu["short"][meal][course][
+            #                     list(hold.keys())[
+            #                         list(hold.values()).index(readify(k.text))
+            #                     ]
+            #                 ] = readify(k.text)
+            #             except:
+            #                 pass
+            # items |= hold
+            # # short and long menu attachment
+            # wipe = True
+            # for m in menu["short"]:
+            #     if menu["short"][m]:
+            #         wipe = False
+            #     else:
+            #         menu["short"][m] = None
+            # # FIXME: clickable URL returns error because requires base cache
+            # menus[i][j]["menu"] = None if wipe else menu
     # for i in menus["butteries"]:
     #     if menus["butteries"][i] and menus["butteries"][i].get("short"):
     #         menus["butteries"][i]["menu"] = menus["butteries"][i].pop("long")
