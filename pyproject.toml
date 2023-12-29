@@ -1,32 +1,33 @@
 [project]
 authors = [
-    {name = "Harsh Dadhich", email = "hdadhich01@gmail.com"},
+  {name = "Harsh Dadhich", email = "hdadhich01@gmail.com"}
 ]
 dependencies = [
-    "beautifulsoup4",
-    "cchardet",
-    "deta",
-    "flask",
-    "flask-compress",
-    "flask-cors",
-    "flask-limiter",
-    "gunicorn",
-    "httpx",
-    "humanize",
-    "lxml",
-    "orjson",
-    "python-dotenv",
-    "round-nutrition>=1.1.1",
-    "schedule",
-    "sentry-sdk[flask]",
-    "thefuzz[speedup]",
+  "beautifulsoup4",
+  "cchardet",
+  "cython",
+  "deta",
+  "flask",
+  "flask-compress",
+  "flask-cors",
+  "flask-limiter",
+  "gunicorn",
+  "httpx",
+  "humanize",
+  "lxml",
+  "orjson",
+  "python-dotenv",
+  "round-nutrition>=1.1.1",
+  "schedule",
+  "sentry-sdk[flask]",
+  "thefuzz[speedup]"
 ]
 description = "Default template for PDM package"
 license = {text = "MIT"}
 name = "api"
+readme = "README.md"
 requires-python = "==3.10.*"
 version = "0.1.0"
-readme = "README.md"
 
 [tool.pdm]
 package-type = "application"
