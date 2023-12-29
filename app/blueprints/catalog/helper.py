@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import islice
 from re import compile
 from urllib.parse import quote_plus
 
@@ -51,28 +52,29 @@ def get_rooms_name(name, rooms):
 def get_ratings(name):
     # FIXME: sid possibly prone to change
     page = get(
-        f"https://www.ratemyprofessors.com/search/teachers?query={quote_plus(name)}&sid=1078",
+        f"https://www.ratemyprofessors.com/search/professors/1078?q={quote_plus(name)}",
         verify=False,
     )
     soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("script"))
-    content = {}
 
     for i in soup:
-        if "_ = " in i.text:
-            content = loads(i.text[: i.text.index(";")].split("_ = ")[1])
+        tx = i.text
+        if "_ = " in tx:
+            pattern = compile(r"_ = ({.*?});")
+            match = pattern.search(tx)
+            content = loads(match.group(1))
             # using first match at index 4 (relative to sid query argument)
             # if pushing pr to api library, access reference IDs to make list of teachers
-            content = content[list(content.keys())[4]]
-            for i in content:
-                if isinstance(content[i], int) and content[i] <= 0:
-                    content[i] = None
+            content = next(islice(content.values(), 4, 5))
+            for key, value in content.items():
+                if isinstance(value, int) and value <= 0:
+                    content[key] = None
             break
 
-    # FIXME: __ref possibly prone to change
     return (
         {
             "name": f"{content['firstName']} {content['lastName']}",
-            "department": content["department"],
+            "department": content["department"].title().replace("And", "and"),
             "rating": content["avgRating"],
             "ratings": content["numRatings"],
             "difficulty": content["avgDifficulty"],
@@ -80,7 +82,7 @@ def get_ratings(name):
             "wouldRetake": round(content["wouldTakeAgainPercent"])
             if content["wouldTakeAgainPercent"]
             else None,
-            "page": f"https://www.ratemyprofessors.com/ShowRatings.jsp?tid={content['legacyId']}",
+            "url": f"https://www.ratemyprofessors.com/ShowRatings.jsp?tid={content['legacyId']}",
         }
         if "id" in content and content["school"]["__ref"] == "U2Nob29sLTEwNzg="
         else abort(404)
