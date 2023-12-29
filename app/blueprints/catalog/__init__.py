@@ -6,8 +6,8 @@ from app import catalogDB, condense_args, limiter, melt
 
 from .helper import *
 
-catalog = Blueprint("catalog", __name__)
-catalog_sources = {
+bp = Blueprint("catalog", __name__)
+srcs = {
     "RateMyProfessors": "https://www.ratemyprofessors.com/",
     # "UCSC Campus Directory": "https://campusdirectory.ucsc.edu/cd_simple",
     "UCSC Class Search": "https://pisa.ucsc.edu/class_search/",
@@ -16,13 +16,13 @@ catalog_sources = {
 }
 
 
-@catalog.route("/")
+@bp.route("/")
 def index():
     """Provides academically relative data for campus instructional offerings."""
     return redirect(f"/#{request.blueprint}")
 
 
-@catalog.route("/rooms")
+@bp.route("/rooms")
 def rooms():
     """Retrieve all classrooms."""
     rooms = catalogDB.get("rooms")
@@ -30,50 +30,50 @@ def rooms():
     return rooms
 
 
-@catalog.route("/classrooms")
+@bp.route("/classrooms")
 def classrooms():
     return redirect(f"/#{request.blueprint}")
 
 
-@catalog.route("/rooms/<string:name>")
+@bp.route("/rooms/<string:name>")
 def rooms_name(name: str):
     """Retrieve data for a classroom. Specify a name with <code>name</code> (string). Example: Classroom Unit 001"""
     return get_rooms_name(name, catalogDB.get("rooms"))
 
 
-@catalog.route("/classrooms/<string:name>")
+@bp.route("/classrooms/<string:name>")
 def classrooms_name(name: str):
     return redirect(f"/#{request.blueprint}")
 
 
 # TODO: https://github.com/Nobelz/RateMyProfessorAPI has a ~2s slower implementation; push a PR
 # FIXME: fetch __ref from somewhere
-@catalog.route("/ratings/<string:name>")
+@bp.route("/ratings/<string:name>")
 def ratings(name: str):
     """Retrieve a RateMyProfessors rating for a teacher. Specify a name with <code>name</code> (string). Example: Luca De Alfaro"""
     return get_ratings(name)
 
 
-@catalog.route("/term", methods=["GET", "POST"])
+@bp.route("/term", methods=["GET", "POST"])
 def term():
     """Retrieve a code for an academic term to use for a class search. Specify a quarter with <code>quarter</code> (string) and/or a year with <code>year</code> (integer)."""
     inbound = condense_args(request, True)
     return get_term(inbound)
 
 
-# @catalog.route("/classes/calendar", methods=["GET", "POST"])
+# @bp.route("/classes/calendar", methods=["GET", "POST"])
 # def classes_calendar():
 #     # TODO: times might override, make a check
 #     """Retrieve a generated calendar (<code>.ics</code> file) for specific class(s). Specify class numbers with <code>number</code> (array)."""
 #     inbound, client = condense_args(request, True), Client()
 
 
-# @catalog.route("/courses/calendar", methods=["GET", "POST"])
+# @bp.route("/courses/calendar", methods=["GET", "POST"])
 # def courses_calendar():
 #     return redirect(f"/#{request.blueprint}")
 
 
-@catalog.route("/classes", methods=["GET", "POST"])
+@bp.route("/classes", methods=["GET", "POST"])
 @limiter.limit("5/minute")
 def classes():
     """Retrieve data for a specific class. Specify an optional term with <code>term</code> (integer) and a number with <code>number</code> (integer)."""
@@ -81,14 +81,14 @@ def classes():
     return get_classes(inbound)
 
 
-@catalog.route("/classes/<int:number>", methods=["GET", "POST"])
+@bp.route("/classes/<int:number>", methods=["GET", "POST"])
 @limiter.limit("5/minute")
 def classes_number(number: int):
     """Retrieve data for a specific class for the current term. Specify a number with <code>number</code> (integer). Example: 10495"""
     return get_classes({"number": number})
 
 
-@catalog.route("/courses", methods=["GET", "POST"])
+@bp.route("/courses", methods=["GET", "POST"])
 def courses():
     return redirect(f"/#{request.blueprint}")
 
@@ -96,7 +96,7 @@ def courses():
 # FIXME: ~1.5s response time
 # FIXME: too high a of a page number returns error
 # http://localhost:5000/catalog/classes/search?courseNumber=19
-@catalog.route("/classes/search", methods=["GET", "POST"])
+@bp.route("/classes/search", methods=["GET", "POST"])
 @limiter.limit("5/minute")
 def classes_search():
     """Retrieve class search results. Specify argument(s) (in their defined data type) accessible at <a href=/catalog/classes/search/template target="_blank" rel="noopener noreferrer">/classes/search/template</a>."""
@@ -108,7 +108,7 @@ def classes_search():
     return get_classes_search(inbound, template, outbound)
 
 
-@catalog.route("/classes/search/<string:code>", methods=["GET", "POST"])
+@bp.route("/classes/search/<string:code>", methods=["GET", "POST"])
 @limiter.limit("5/minute")
 def classes_search_name(code: str):
     """Retrieve class search results. Specify a subject and a number following it with <code>code</code> (string). Example: MATH 19A"""
@@ -130,12 +130,12 @@ def classes_search_name(code: str):
     )
 
 
-@catalog.route("/courses/search", methods=["GET", "POST"])
+@bp.route("/courses/search", methods=["GET", "POST"])
 def courses_search():
     return redirect(f"/#{request.blueprint}")
 
 
-@catalog.route("/classes/search/template")
+@bp.route("/classes/search/template")
 def classes_search_template():
     """Retrieve the template to build your request for <a href=/catalog/classes/search target="_blank" rel="noopener noreferrer">/classes/search</a></code>."""
     template = melt(catalogDB.get("template"))
@@ -145,17 +145,17 @@ def classes_search_template():
     return template if template else abort(503)
 
 
-@catalog.route("/courses/search/template")
+@bp.route("/courses/search/template")
 def courses_search_template():
     return redirect(f"/#{request.blueprint}")
 
 
-@catalog.route("/classes/textbooks")
+@bp.route("/classes/textbooks")
 def classes_textbooks():
     return redirect(f"/#{request.blueprint}")
 
 
-@catalog.route("/courses/textbooks")
+@bp.route("/courses/textbooks")
 def courses_textbooks():
     return redirect(f"/#{request.blueprint}")
 

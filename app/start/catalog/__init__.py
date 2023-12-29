@@ -64,7 +64,6 @@ def scrape_headers(client):
 
 
 def build_headers(client):
-    print("scraping pisa headers...", end="", flush=True)
     comp, template = scrape_headers(client), {}
     print("done")
     print("building pisa headers...", end="", flush=True)
@@ -99,3 +98,12 @@ def build_headers(client):
     if len(template) == 2:
         template, outbound = None, None
     return template, outbound
+
+
+# TODO: scrape instructional cal
+def scrape_calendar(client):
+    print("scraping calendar...", end="", flush=True)
+    page = client.get("https://registrar.ucsc.edu/calendar/future.html")
+    soup = BeautifulSoup(page.text, "lxml", SoupStrainer(["h3", "td"]))
+    print("done")
+    return soup

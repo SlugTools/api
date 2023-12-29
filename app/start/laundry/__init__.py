@@ -3,7 +3,7 @@ from pprint import pprint
 from httpx import Client
 
 
-def scrape_laundry_rooms(client):
+def scrape_rooms(client):
     client = Client(base_url="https://www.laundryview.com/api")
     campus, rooms = client.get("c_room?loc=9632").json(), {}
     for i in campus["room_data"]:

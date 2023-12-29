@@ -25,16 +25,14 @@ app.aborter = Aborter(extra={204: _204})
 @app.errorhandler(429)  # too many requests
 @app.errorhandler(500)  # internal server error
 @app.errorhandler(503)  # service unavailable
-def internal_server_error(error):
+def error_handler(error):
     custom = {429: "The rate limit has been exceeded. Rate: "}
     return (
         render_template(
             "error.html",
             code=error.code,
             name=error.name,
-            description=custom[error.code] + error.description
-            if custom.get(error.code)
-            else error.description,
+            description=custom.get(error.code, "") + error.description,
         ),
         error.code,
     )

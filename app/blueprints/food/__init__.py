@@ -5,8 +5,8 @@ from app import condense_args, foodDB
 
 from .helper import *
 
-food = Blueprint("food", __name__)
-food_sources = {
+bp = Blueprint("food", __name__)
+srcs = {
     "round-nutrition": "https://pypi.org/project/round-nutrition/",
     "UCSC Dining": "https://dining.ucsc.edu/eat/",
     "UCSC Dining Menus": "https://nutrition.sa.ucsc.edu/",
@@ -15,13 +15,13 @@ food_sources = {
 }
 
 
-@food.route("/")
+@bp.route("/")
 def index():
     """Provides locational and nutritional data for on-campus food/eateries."""
     return redirect(f"/#{request.blueprint}")
 
 
-@food.route("/locations")
+@bp.route("/locations")
 def locations():
     """Retrieve current locational data for all on-campus dining/eatery locations."""
     locations = foodDB.get("locations")
@@ -30,25 +30,25 @@ def locations():
     return update_locations(locations)
 
 
-@food.route("/places")
+@bp.route("/places")
 def places():
     return redirect(f"/#{request.blueprint}")
 
 
-@food.route("/locations/<int:id>")
+@bp.route("/locations/<int:id>")
 def locations_id(id: int):
     """Retrieve current locational data for an on-campus dining/eatery location. Specify an ID with <code>id</code> (integer). Example: 40"""
     location = update_locations_id(foodDB.get("locations"), id)
     return location if location else abort(404)
 
 
-@food.route("/places/<int:id>")
+@bp.route("/places/<int:id>")
 def places_id():
     return redirect(f"/#{request.blueprint}")
 
 
 # TODO: allow enabling date argument
-@food.route("/menus", methods=["GET"])
+@bp.route("/menus", methods=["GET"])
 def menus():
     """Retrieve today's menu data for all on-campus and university-managed dining/eatery locations."""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
     menus = foodDB.get("menus")
@@ -57,7 +57,7 @@ def menus():
 
 
 # TODO: allow enabling date argument
-@food.route("/menus/<int:id>")
+@bp.route("/menus/<int:id>")
 def menus_id(id: int):
     """Retrieve today's menu data for an on-campus and university-managed dining/eatery location. Specify an ID with <code>id</code> (integer). Example: 40"""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
     menus = foodDB.get("menus")
@@ -72,7 +72,7 @@ def menus_id(id: int):
     abort(404)
 
 
-@food.route("/items")
+@bp.route("/items")
 def items():
     """Retrieve identifying data for all on-campus university-managed dining/eatery items."""
     items = foodDB.get("items")
@@ -80,7 +80,7 @@ def items():
     return items
 
 
-@food.route("/items/<string:id>")
+@bp.route("/items/<string:id>")
 def items_id(id: str):
     """Retrieve nutritional data for an on-campus university-managed dining/eatery item. Specify an ID with <code>id</code> (string). Example: 217008*2*01"""
     response = scrape_item(id)
@@ -88,13 +88,13 @@ def items_id(id: str):
 
 
 # account for item IDs with fractional servings
-@food.route("/items/<string:id_1>/<string:id_2>")
+@bp.route("/items/<string:id_1>/<string:id_2>")
 def items_id_1_id_2(id_1: str, id_2: str):
     response = scrape_item(f"{id_1}/{id_2}")
     return response if response else abort(404)
 
 
-@food.route("/items/search/<string:name>")
+@bp.route("/items/search/<string:name>")
 def items_search_name(name: str):
     """Retrieve item search results. Specify a name with <code>name</code> (string). Example: Corn"""
     items = foodDB.get("items")
@@ -107,7 +107,7 @@ def items_search_name(name: str):
     )
 
 
-@food.route("/items/sum", methods=["GET", "POST"])
+@bp.route("/items/sum", methods=["GET", "POST"])
 def items_sum():
     """Retrieve summed nutritional data for on-campus university-managed dining/eatery items. Specify IDs with <code>ids</code> (array of strings)."""
     inbound = condense_args(request, True)
