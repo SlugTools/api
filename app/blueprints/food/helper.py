@@ -9,7 +9,7 @@ from httpx import Client
 from round_nutrition import *
 from thefuzz.process import extractOne
 
-from app import readify
+from app import readify, waitz
 
 
 def build_data(live, compare):
@@ -61,34 +61,34 @@ def build_data(live, compare):
 
 
 def fetch_data():
-    client = Client(base_url="https://waitz.io")
-    live = client.get("/live/ucsc").json()["data"]
-    comp = client.get("compare/ucsc").json()["data"]
+    live = waitz.get("/live/ucsc").json()["data"]
     names = {i: j["name"] for i, j in enumerate(live)}
-    return live, comp, names
+    return live, names
 
 
-def find_match(j, live, comp, names):
+def find_match(j, live, names):
     match = extractOne(j["name"], names)
     match = match[2] if match[1] > 90 else None
     data = None
     if match:
+        # only invoke this req when found to prevent latency
+        comp = waitz.get("/compare/ucsc").json()["data"]
         data = build_data(live[match], comp[match])
     return data
 
 
 def mult_waitz(locs):
-    live, comp, names = fetch_data()
+    live, names = fetch_data()
     for i, j in enumerate(locs):
-        locs[i] |= {"waitz": find_match(j, live, comp, names)}
+        locs[i] |= {"waitz": find_match(j, live, names)}
     return locs
 
 
 def single_waitz(locs, id):
-    live, comp, names = fetch_data()
+    live, names = fetch_data()
     for i, j in enumerate(locs):
         if j["id"] == id:
-            return locs[i] | {"waitz": find_match(j, live, comp, names)}
+            return locs[i] | {"waitz": find_match(j, live, names)}
     return None
 
 

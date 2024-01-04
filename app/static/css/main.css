@@ -1,79 +1,81 @@
 /* imported from @ErikBoesen at https://github.com/YaleMenus/api/blob/master/app/static/css/main.css */
 
 @font-face {
-    font-family: "Lexend Deca";
-    font-style: normal;
-    font-weight: 400;
-    src: local("Lexend Deca Regular"), local("LexendDeca-Regular"), url(https://fonts.gstatic.com/s/lexenddeca/v1/K2F1fZFYk-dHSE0UPPuwQ5qnJy_YZ2ON.woff2) format("woff2");
+  font-family: "Lexend Deca";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Lexend Deca Regular"), local("LexendDeca-Regular"),
+    url(https://fonts.gstatic.com/s/lexenddeca/v1/K2F1fZFYk-dHSE0UPPuwQ5qnJy_YZ2ON.woff2)
+      format("woff2");
 }
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: "Lexend Deca", serif;
-    font-size: 16px;
-    padding: 20px;
-    color: #003c6c;
-    background: white;
-    border-top-width: 20px;
-    border-top-style: solid;
-    border-top-color: #003c6c;
+  font-family: "Lexend Deca", serif;
+  font-size: 16px;
+  padding: 20px;
+  color: #003c6c;
+  background: white;
+  border-top-width: 20px;
+  border-top-style: solid;
+  border-top-color: #003c6c;
 }
 
 header {
-    margin-bottom: 10px;
+  margin-bottom: 10px;
 }
 
 header a {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 img {
-    height: 52px;
-    vertical-align: top;
-    display: inline-block;
-    padding-right: 7px;
+  height: 52px;
+  vertical-align: top;
+  display: inline-block;
+  padding-right: 7px;
 }
 
 h2 {
-    font-size: 40px;
-    display: inline-block;
+  font-size: 40px;
+  display: inline-block;
 }
 
 h3 {
-    font-size: 25px;
-    display: inline;
-    margin-top: 10px;
+  font-size: 25px;
+  display: inline;
+  margin-top: 10px;
 }
 
 h4 {
-    display: inline;
+  display: inline;
 }
 
 p {
-    margin: 5px 0 8px;
-    max-width: 6.5in;
-    line-height: 1.5;
+  margin: 5px 0 8px;
+  max-width: 6.5in;
+  line-height: 1.5;
 }
 
 a {
-    color: inherit;
+  color: inherit;
 }
 
 #warning {
-    color: #D5202F;
+  color: #d5202f;
 }
 
 footer {
-    margin-top: 10px;
-    font-size: 12px;
-    color: gray;
+  margin-top: 10px;
+  font-size: 12px;
+  color: gray;
 }
 
 i {
-    padding-right: 5px;
+  padding-right: 5px;
 }

@@ -3,16 +3,16 @@
   <link
     rel="stylesheet"
     href="{{ url_for('static', filename='css/main.css') }}"
-  >
+  />
   <link
     rel="shortcut icon"
     href="{{ url_for('static', filename='images/favicon.ico') }}"
-  >
+  />
   <link
     rel="apple-touch-icon"
     sizes="128x128"
     href="{{ url_for('static', filename='images/logo.png') }}"
-  >
+  />
   <title>SlugTools API</title>
   <script
     src="https://kit.fontawesome.com/f3cf804b93.js"
@@ -21,29 +21,26 @@
   <body>
     <header>
       <a href="/">
-        <img src="{{ url_for('static', filename='images/logo.svg') }}">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" />
         <h2>SlugTools API</h2>
       </a>
     </header>
-    <main>
-      {% block content %}
-      {% endblock %}
-    </main>
+    <main>{% block content %} {% endblock %}</main>
     <footer>
       <td>
         <a
-        href="mailto:admin@slug.tools"
-        target="_blank"
-        rel="noopener noreferrer"
-        style="text-decoration: none; font-size: 15px; padding-right: 3px"
-        ><i class="fa-solid fa-envelope" style="font-size: 20px"></i>Email</a
+          href="mailto:admin@slug.tools"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="text-decoration: none; font-size: 15px; padding-right: 3px"
+          ><i class="fa-solid fa-envelope" style="font-size: 20px"></i>Email</a
         >
         <a
-        href="https://github.slug.tools"
-        target="_blank"
-        rel="noopener noreferrer"
-        style="text-decoration: none; font-size: 15px; padding-right: 3px"
-        ><i class="fa-brands fa-github" style="font-size: 20px"></i>GitHub</a
+          href="https://github.slug.tools"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="text-decoration: none; font-size: 15px; padding-right: 3px"
+          ><i class="fa-brands fa-github" style="font-size: 20px"></i>GitHub</a
         >
         <a
           href="https://status.slug.tools"
@@ -53,6 +50,9 @@
           ><i class="fa-solid fa-signal" style="font-size: 15px"></i>Status</a
         >
       </td>
+      <p>
+        Built by <a href="https://harshdadhich.com">Harsh Dadhich</a> | Data propery of <a href="sources">Sources</a>
+      </p>
     </footer>
   </body>
 </html>

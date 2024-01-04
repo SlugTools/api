@@ -12,9 +12,9 @@ def index():
 
 @bp.route("/sources")
 def bp_sources():
-    from app import sources
+    from app import srcs
 
-    return render_template("sources.html", map=get_sources(), sources=sources)
+    return render_template("sources.html", map=get_sources(), sources=srcs)
 
 
 @bp.route("/links")

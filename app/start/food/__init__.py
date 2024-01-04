@@ -27,6 +27,10 @@ def embed_to_reg_url(embed):
     long = match_long.group(1)
     place = match_place.group(1)
 
+    # FIXME: workaround for UCen Bistro
+    if lat[-3:] == "224":
+        place = f"{place}%20Bistro"
+
     return f"https://www.google.com/maps?q={place}&ll={lat},{long}&z=15"
 
 
@@ -50,7 +54,9 @@ def build_managed_loc(menu_site, soup):
             }
 
     # FIXME: workaround for UCen Bistro / UCen Cafe
-    locs["University Center Cafe"] = locs.pop("UCen Coffee Bar")
+    cafe = "University Center Cafe"
+    locs[cafe] = locs.pop("UCen Coffee Bar")
+    locs[cafe]["name"] = cafe
     return locs
 
 
@@ -70,18 +76,19 @@ def handle_direct_match(locs, name, info, menu_site):
     if locs.get(name):
         locs[name].update(parse_location_meta(info))
     else:
-        handle_fuzzy_match(locs, name, info, menu_site)
+        handle_fuzzy_match(locs, name, info)
 
 
 # dine site loc ≈ nutrition site loc
 # or dine site subloc of nutrition site loc
 # (e.g. Perk: PSB, E&M, etc.)
-def handle_fuzzy_match(locs, name, info, menu_site):
+def handle_fuzzy_match(locs, name, info):
     limit = " ".join(name.split()[:3])
     match = extractOne(limit, locs.keys())
 
     hold = locs[match[0]]
     locs[name] = {**hold, **parse_location_meta(info)}
+    locs[name]["name"] = name
 
     if len(hold) == 2:
         del locs[match[0]]
@@ -130,7 +137,6 @@ def scrape_locations(client):
 
     page = client.get(menu_site)
     soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("a"))
-
     locs = build_managed_loc(menu_site, soup)
 
     page = client.get("https://dining.ucsc.edu/eat/")

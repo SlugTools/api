@@ -7,5 +7,6 @@ class Config:
     # FIXME: figure out dotenv
     load_dotenv()
     DETA_KEY = os.environ.get("DETA_KEY")
-    SENTRY_SDK_DSN = os.environ.get("SENTRY_SDK_DSN")
+    OPENWEATHER_KEY = os.environ.get("OPENWEATHER_KEY")
+    SENTRY_DSN = os.environ.get("SENTRY_SDK_DSN")
     JSON_SORT_KEYS = False

@@ -1,6 +1,9 @@
 # from threading import Event
 # from time import sleep
 
+import sys
+import warnings
+
 from deta import Deta
 from flask import Flask
 from flask_compress import Compress
@@ -9,17 +12,17 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from httpx import Client
 
-from config import Config
-
 # from schedule import every
-# from sentry_sdk import init
-# from sentry_sdk.integrations.flask import FlaskIntegration
-# from sentry_sdk.integrations.httpx import HttpxIntegration
+from sentry_sdk import init
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.httpx import HttpxIntegration
+
+from config import Config
 
 
 # TODO: add option to disable data scraping
 def create_app() -> Flask:
-    print("initializing app...", end="", flush=True)
+    print("\ninitializing app...", end="", flush=True)
     app = Flask(__name__)
     app.config.from_object(Config)
     print("done")
@@ -77,13 +80,6 @@ def register_blueprints(app):
     from .blueprints import catalog, food, home, laundry, weather
 
     print("registering blueprints...", end="", flush=True)
-    sources = {
-        "/catalog": catalog.srcs,
-        "/food": food.srcs,
-        "/laundry": laundry.srcs,
-        # "/metro": metro.srcs,
-        "/weather": weather.srcs,
-    }
     app.register_blueprint(home.bp)
     app.register_blueprint(catalog.bp, url_prefix="/catalog")
     app.register_blueprint(food.bp, url_prefix="/food")
@@ -91,7 +87,14 @@ def register_blueprints(app):
     # app.register_blueprint(metro.bp, url_prefix="/metro")
     app.register_blueprint(weather.bp, url_prefix="/weather")
     print("done\n")
-    return sources
+
+    return {
+        "/catalog": catalog.srcs,
+        "/food": food.srcs,
+        "/laundry": laundry.srcs,
+        # "/metro": metro.srcs,
+        "/weather": weather.srcs,
+    }
 
 
 with app.app_context():
@@ -99,23 +102,28 @@ with app.app_context():
     Compress(app)
     CORS(app)
     deta = Deta(app.config["DETA_KEY"])
-    # TODO: review limits
-    limiter = Limiter(get_remote_address, app=app)
-    # init(
-    #     dsn=app.config["SENTRY_DSN"],
-    #     integrations=[FlaskIntegration(), HttpxIntegration()],
-    #     traces_sample_rate=1.0,
-    # )
-    print("done")
-    print("declaring databases...", end="", flush=True)
+    warnings.filterwarnings("ignore")
+    limiter = Limiter(get_remote_address, app=app)  # TODO: review limits
+    if "--debug" not in sys.argv:
+        init(
+            dsn=app.config["SENTRY_DSN"],
+            integrations=[FlaskIntegration(), HttpxIntegration()],
+            traces_sample_rate=1.0,
+        )
+
+    print("done\ndeclaring databases...", end="", flush=True)
     catalogDB = deta.Base("catalog")
     foodDB = deta.Base("food")
     laundryDB = deta.Base("laundry")
     print("done")
-    client = Client(verify=False)
-    scrape_data(client)
+
+    if "--noscrape" not in sys.argv:
+        scrape_data(Client(verify=False))
+
     currTerm = list(catalogDB.get("template")["02term"].values())[-1]
-    sources = register_blueprints(app)
+    waitz = Client(base_url="https://waitz.io")
+    omw = Client(base_url="https://api.openweathermap.org")
+    srcs = register_blueprints(app)
     # print("registering event loops...", end="", flush=True)
     # every().day.at("00:00").do(scrape_data, client=Client())
     # def run_continuously(interval=1):
@@ -166,6 +174,6 @@ with app.app_context():
 # gunicorn # web server
 # hiredis # C client for Redis
 # psycopg2 # DB API for PostgreSQL
-# redis# queue for database
+# redis # queue for database
 # pyjwt # JSON web tokens
 # flask-cas # CAS authentication with CBORD

@@ -17,20 +17,27 @@ srcs = {
 
 @bp.route("/")
 def index():
-    """Provides locational and nutritional data for on-campus food/eateries."""
+    """On-Campus Locations, Menus, and Nutrition"""
     return redirect(f"/#{request.blueprint}")
 
 
 @bp.route("/locations")
 def locations():
-    """Retrieve current locational data for all on-campus dining/eatery locations."""
+    """
+    Details for all locations
+    """
     locs = foodDB.get("locs")
-    return mult_waitz(locs["value"])
+    return locs["value"]
+    # return mult_waitz(locs["value"])
 
 
 @bp.route("/locations/<int:id>")
 def locations_id(id: int):
-    """Retrieve current locational data for an on-campus dining/eatery location. Specify an ID with <code>id</code> (integer). Example: 40"""
+    """
+    Details for location<br>
+    required: <code>id</code> (int)
+    Example: 40
+    """
     locs = foodDB.get("locs")
     loc = single_waitz(locs["value"], id)
     return loc if loc else abort(404)
@@ -39,7 +46,9 @@ def locations_id(id: int):
 # TODO: allow enabling date argument
 @bp.route("/menus", methods=["GET"])
 def menus():
-    """Retrieve today's menu data for all on-campus and university-managed dining/eatery locations."""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
+    """
+    Basic menu details for all locations
+    """
     menus = foodDB.get("menus")
     del menus["key"]
     return menus
@@ -48,7 +57,11 @@ def menus():
 # TODO: allow enabling date argument
 @bp.route("/menus/<int:id>")
 def menus_id(id: int):
-    """Retrieve today's menu data for an on-campus and university-managed dining/eatery location. Specify an ID with <code>id</code> (integer). Example: 40"""  # Specify a date with <code>date</code> in the <code>MM-DD-YY</code> format."""
+    """
+    Full menu details for location<br>
+    required: <code>id</code> (int)
+    Example: 40
+    """
     menus = foodDB.get("menus")
     for i in menus:
         for j in menus[i]:
@@ -63,7 +76,9 @@ def menus_id(id: int):
 
 @bp.route("/items")
 def items():
-    """Retrieve identifying data for all on-campus university-managed dining/eatery items."""
+    """
+    All food items
+    """
     items = foodDB.get("items")
     del items["key"]
     return items
@@ -71,7 +86,11 @@ def items():
 
 @bp.route("/items/<string:id>")
 def items_id(id: str):
-    """Retrieve nutritional data for an on-campus university-managed dining/eatery item. Specify an ID with <code>id</code> (string). Example: 217008*2*01"""
+    """
+    Macros for food item<br>
+    required: <code>id</code> (int)
+    Example: 217008*2*01
+    """
     response = scrape_item(id)
     return response if response else abort(404)
 
@@ -85,7 +104,11 @@ def items_id_1_id_2(id_1: str, id_2: str):
 
 @bp.route("/items/search/<string:name>")
 def items_search_name(name: str):
-    """Retrieve item search results. Specify a name with <code>name</code> (string). Example: Corn"""
+    """
+    Search for food item by name<br>
+    required: <code>name</code> (str)
+    Example: Corn
+    """
     items = foodDB.get("items")
     names = list(items.values())
     extract = extractOne(name, names)
@@ -98,6 +121,9 @@ def items_search_name(name: str):
 
 @bp.route("/items/sum", methods=["GET", "POST"])
 def items_sum():
-    """Retrieve summed nutritional data for on-campus university-managed dining/eatery items. Specify IDs with <code>ids</code> (array of strings)."""
+    """
+    Summed macros for items <br>
+    required: <code>ids</code> (arr of str)
+    """
     inbound = condense_args(request, True)
     return get_items_sum(inbound)

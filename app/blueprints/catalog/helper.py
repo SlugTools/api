@@ -79,7 +79,7 @@ def get_ratings(name):
             "ratings": content["numRatings"],
             "difficulty": content["avgDifficulty"],
             # FIXME: wouldRetake displays null if 0%
-            "wouldRetake": round(content["wouldTakeAgainPercent"])
+            "wouldRetake": f"{round(content['wouldTakeAgainPercent'])}%"
             if content["wouldTakeAgainPercent"]
             else None,
             "url": f"https://www.ratemyprofessors.com/ShowRatings.jsp?tid={content['legacyId']}",

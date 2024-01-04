@@ -10,6 +10,7 @@ httpx
 humanize
 lxml
 orjson
+portolan
 python-dotenv
 round-nutrition
 schedule

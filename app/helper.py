@@ -1,3 +1,4 @@
+from decimal import ROUND_HALF_UP, Decimal, localcontext
 from re import findall, sub
 from unicodedata import normalize
 
@@ -59,3 +60,10 @@ def parse_days_times(text):
 
 def readify(text):
     return sub(" +", " ", normalize("NFKD", text).replace("\n", "")).strip()
+
+
+def rounder(num):
+    with localcontext() as ctx:
+        ctx.rounding = ROUND_HALF_UP
+        print(num)
+        return Decimal(num).to_integral_value()

@@ -2,9 +2,14 @@
 
 {% block content %}
     <meta name="Description" content="A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz.">
-    <p>A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz. <b>Please read the GitHub <a href="https://github.slug.tools" target="_blank" rel="noopener noreferrer">organization</a> and <a href="https://github.slug.tools/api" target="_blank" rel="noopener noreferrer">repository</a> READMEs, as well as the <a href="sources">sources</a> before using this service.</b> Report any bugs, errors, and/or issues in the GitHub <a href="https://github.slug.tools/api" target="_blank" rel="noopener noreferrer">repository</a>.</p>
+    <h3>Access university data with ease!</h3>
+    <p>
+        The SlugTools API provides a standards-compliant interface that developers can use to access <b>UC Santa Cruz</b> data. It serves scraped and organized data across university sites and categories. Report any bugs/errors/issues <a href="https://github.slug.tools">here</a>.
+        <hr style="visibility:hidden;" />
+        All data is property of respective <a href="sources">sources</a>. Read up more on how this works <a href="https://github.slug.tools/api">here</a>.
+    </p>
     <h1>Endpoints</h1>
-    <p>All listed endpoints originate from the current URL and return a JSON response.</p>
+    <p>All endpoints return JSON <code>{}</code></p>
     <script
         src="{{ url_for('static', filename='js/prompt.js') }}">
     </script>
@@ -14,16 +19,16 @@
         {% for j in map[i]["routes"] %}
             <h4>
                 {% if "<" in j %}
-                    <a title="yeah" onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="cursor: pointer">{{ j.split()[0] }}</a> {{ map[i]["routes"][j]["methods"]|safe }}
+                    <a onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="cursor: pointer">{{ j.split()[0] }}</a>
                 {% else %}
-                    <a href={{ i + j }} target="_blank" rel="noopener noreferrer" style="text-decoration: none;">{{ j.split()[0] }}</a> {{ map[i]["routes"][j]["methods"]|safe }}
+                    <a href={{ i + j }} style="text-decoration: none;">{{ j.split()[0] }}</a>
                 {% endif %}
+                {{ map[i]["routes"][j]["methods"]|safe }}
             </h4>
             <p>{{ map[i]["routes"][j]["description"]|safe }}</p>
         {% endfor %}
     {% endfor %}
     <footer>
-        <p style="font-size: 15px;">CSS by <a href="https://erikboesen.com" target="_blank" rel="noopener noreferrer">Erik Boesen</a></p>
-        <a href="https://www.digitalocean.com/?refcode=6c62cf272692&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge" target="_blank" rel="noopener noreferrer"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge"></a><a href="https://simpleanalytics.com/api.slug.tools?utm_source=api.slug.tools&utm_content=badge" referrerpolicy="origin" target="_blank"><img src="https://simpleanalyticsbadges.com/api.slug.tools?logo=fdc700&text=fdc700&background=003c6c" style="object-fit: scale-down; max-width: 25%;" referrerpolicy="no-referrer" crossorigin="anonymous"></a>
+        <a href="https://www.digitalocean.com/?refcode=6c62cf272692&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge"></a><a href="https://simpleanalytics.com/api.slug.tools?utm_source=api.slug.tools&utm_content=badge" referrerpolicy="origin" target="_blank"><img src="https://simpleanalyticsbadges.com/api.slug.tools?logo=fdc700&text=fdc700&background=003c6c" style="object-fit: scale-down; max-width: 25%;" referrerpolicy="no-referrer" crossorigin="anonymous"></a>
     </footer>
 {% endblock %}
