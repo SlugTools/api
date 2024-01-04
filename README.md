@@ -28,7 +28,7 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Set up accounts and save keys:
+Set up accounts and save keys in `.env`:
 
 - [Deta](https://web.deta.sh/) `DETA_KEY` (database)
 - [OpenWeather](https://openweathermap.org/) `OPENWEATHER_KEY`
