@@ -7,6 +7,8 @@
 
 The SlugTools API provides a standards-compliant interface that developers can use to access UC Santa Cruz data. It serves scraped and organized data across university sites and categories. Report and bugs/errors/issues here.
 
+[![asciicast](https://asciinema.org/a/629965.svg)](https://asciinema.org/a/629965)
+
 ## How Does it Work?
 
 We're scraping data from different sites, combining them, and serving them in a standardized format. This is done through [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) and a few other libraries, and then hosted on [Flask](https://flask.palletsprojects.com/en/latest/). Check out [LEARN.md](LEARN.md).
