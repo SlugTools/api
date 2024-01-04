@@ -40,39 +40,35 @@ def scrape_data(client):
         print("scraping room data...", end="", flush=True)
         rooms = catalog.scrape_rooms(client)
         print("done\nscraping pisa headers...", end="", flush=True)
-        pisa = catalog.build_headers(client)
+        inB, outB = catalog.build_headers(client)
         print("done")
-        return {"rooms": rooms, "template": pisa[0], "outbound": pisa[1]}
+        return [rooms, inB, outB]
 
     def scrape_food(client):
         print("scraping location data...", end="", flush=True)
-        locations = food.scrape_locations(client)
+        locs = food.scrape_locations(client)
         print("done\nscraping menu data...", end="", flush=True)
-        menus_items = food.scrape_menus_items(client, locations)
+        menus, items = food.scrape_menus_items(client, locs)
         print("done")
-        return {
-            "locations": locations,
-            "menus": menus_items[0],
-            "items": menus_items[1],
-        }
+        return [list(locs.values()), menus, items]
 
     def scrape_laundry(client):
         print("scraping laundry data...", end="", flush=True)
         rooms = laundry.scrape_rooms(client)
         print("done")
-        return {"rooms": rooms}
+        return rooms
 
     cat = scrape_catalog(client)
     fd = scrape_food(client)
     ld = scrape_laundry(client)
     print("saving to databases...", end="", flush=True)
-    catalogDB.put(cat["rooms"], "rooms")
-    catalogDB.put(forge(cat["template"]), "template")
-    catalogDB.put(forge(cat["outbound"]), "outbound")
-    foodDB.put(fd["locations"], "locations")
-    foodDB.put(fd["menus"], "menus")
-    foodDB.put(fd["items"], "items")
-    laundryDB.put(ld["rooms"], "rooms")
+    catalogDB.put(cat[0], "rooms")
+    catalogDB.put(forge(cat[1]), "inB")  # template for users on how to build headers
+    catalogDB.put(forge(cat[2]), "outB")  # pisa site-readable headers
+    foodDB.put(fd[0], "locs")
+    foodDB.put(fd[1], "menus")
+    foodDB.put(fd[2], "items")
+    laundryDB.put(ld, "rooms")
     print("done")
 
 

@@ -63,41 +63,43 @@ def scrape_headers(client):
     return comp
 
 
+# inB: user-readable headers (inbound)
+# outB: site-readable headers (outbound; for POST req)
 def build_headers(client):
-    comp, template = scrape_headers(client), {}
+    comp, inB = scrape_headers(client), {}
     print("done")
     print("building pisa headers...", end="", flush=True)
     for i in comp:
         if len(comp[i]) != 1:
-            template[i] = {}
+            inB[i] = {}
             for j in comp[i]:
                 if j[:-1].split("_")[-1] == "op":
-                    template[i]["operation"] = comp[i][j]
+                    inB[i]["operation"] = comp[i][j]
                 elif j[:-1].split("_")[-1] == "nbr" or "_" not in j:
-                    template[i]["value"] = comp[i][j]
+                    inB[i]["value"] = comp[i][j]
                 else:
-                    template[i][j[:-1].split("_")[-1]] = comp[i][j]
+                    inB[i][j[:-1].split("_")[-1]] = comp[i][j]
         else:
-            template[i] = comp[i][list(comp[i].keys())[0]]
+            inB[i] = comp[i][list(comp[i].keys())[0]]
     modes = {}
-    for i in list(template.keys())[-4:]:
+    for i in list(inB.keys())[-4:]:
         modes[i] = True
-        del template[i]
-    template |= {"instructionModes": modes}
-    template["page"], outbound = {"number": 1, "results": 25}, {}
+        del inB[i]
+    inB |= {"instructionModes": modes}
+    inB["page"], outB = {"number": 1, "results": 25}, {}
     for i in comp:
         for j in comp[i]:
             if isinstance(comp[i][j], dict):
-                outbound[j] = list(comp[i][j].keys())[0]
+                outB[j] = list(comp[i][j].keys())[0]
             elif isinstance(comp[i][j], list):
-                outbound[j] = comp[i][j][0]
+                outB[j] = comp[i][j][0]
             else:
-                outbound[j] = comp[i][j]
+                outB[j] = comp[i][j]
     # TODO: adjust rec_dur
-    outbound["rec_start"], outbound["rec_dur"] = "0", "25"
-    if len(template) == 2:
-        template, outbound = None, None
-    return template, outbound
+    outB["rec_start"], outB["rec_dur"] = "0", "25"
+    if len(inB) == 2:
+        inB, outB = None, None
+    return inB, outB
 
 
 # TODO: scrape instructional cal

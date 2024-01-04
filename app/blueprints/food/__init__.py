@@ -24,27 +24,16 @@ def index():
 @bp.route("/locations")
 def locations():
     """Retrieve current locational data for all on-campus dining/eatery locations."""
-    locations = foodDB.get("locations")
-    del locations["key"]
-    return locations
-    return update_locations(locations)
-
-
-@bp.route("/places")
-def places():
-    return redirect(f"/#{request.blueprint}")
+    locs = foodDB.get("locs")
+    return mult_waitz(locs["value"])
 
 
 @bp.route("/locations/<int:id>")
 def locations_id(id: int):
     """Retrieve current locational data for an on-campus dining/eatery location. Specify an ID with <code>id</code> (integer). Example: 40"""
-    location = update_locations_id(foodDB.get("locations"), id)
-    return location if location else abort(404)
-
-
-@bp.route("/places/<int:id>")
-def places_id():
-    return redirect(f"/#{request.blueprint}")
+    locs = foodDB.get("locs")
+    loc = single_waitz(locs["value"], id)
+    return loc if loc else abort(404)
 
 
 # TODO: allow enabling date argument

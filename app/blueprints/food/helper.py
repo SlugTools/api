@@ -12,7 +12,7 @@ from thefuzz.process import extractOne
 from app import readify
 
 
-def update(live, compare):
+def build_data(live, compare):
     if live["isOpen"]:
         master = {
             "open": live["isOpen"],
@@ -60,31 +60,35 @@ def update(live, compare):
     return {"open": False, "occupation": None, "subLocation": None}
 
 
-def update_locations(locations):
+def fetch_data():
     client = Client(base_url="https://waitz.io")
     live = client.get("/live/ucsc").json()["data"]
-    compare = client.get("compare/ucsc").json()["data"]
+    comp = client.get("compare/ucsc").json()["data"]
     names = {i: j["name"] for i, j in enumerate(live)}
-    for i in locations:
-        match = extractOne(i, names)
-        locations[i] |= update(live[match[2]], compare[match[2]])
-    return locations
+    return live, comp, names
 
 
-def update_locations_id(locations, id):
-    for i in locations["managed"]:
-        for j in locations["managed"][i]:
-            if j == str(id):
-                if i == "diningHalls":
-                    client = Client(base_url="https://waitz.io/")
-                    live = client.get("live/ucsc").json()["data"]
-                    compare = client.get("compare/ucsc").json()["data"]
-                    names = {i: j["name"] for i, j in enumerate(live)}
-                    match = extractOne(locations["managed"][i][j]["name"], names)
-                    return locations["managed"][i][j] | update(
-                        live[match[2]], compare[match[2]]
-                    )
-                return locations["managed"][i][j]
+def find_match(j, live, comp, names):
+    match = extractOne(j["name"], names)
+    match = match[2] if match[1] > 90 else None
+    data = None
+    if match:
+        data = build_data(live[match], comp[match])
+    return data
+
+
+def mult_waitz(locs):
+    live, comp, names = fetch_data()
+    for i, j in enumerate(locs):
+        locs[i] |= {"waitz": find_match(j, live, comp, names)}
+    return locs
+
+
+def single_waitz(locs, id):
+    live, comp, names = fetch_data()
+    for i, j in enumerate(locs):
+        if j["id"] == id:
+            return locs[i] | {"waitz": find_match(j, live, comp, names)}
     return None
 
 

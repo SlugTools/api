@@ -41,12 +41,11 @@ def build_managed_loc(menu_site, soup):
     for i in soup:
         if "location" in i["href"]:
             params = parse_qs(i["href"])
-            location_id = int(params["locationNum"][0])
-            location_name = params["locationName"][0]
-            locs[location_name] = {
-                "id": location_id,
+            name = params["locationName"][0]
+            locs[name] = {
+                "id": int(params["locationNum"][0]),
                 "url": f"{menu_site}{i['href']}",
-                "name": location_name,
+                "name": name,
                 "managed": True,
             }
 
