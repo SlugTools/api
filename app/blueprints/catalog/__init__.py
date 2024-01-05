@@ -67,7 +67,7 @@ def ratings(name: str):
 def term():
     """
     Code for academic term (to specify in class search)<br>
-    required: <code>quarter</code> (str) and/or <code>year</code> (int).
+    required: <code>quarter</code> (str) and/or <code>year</code> (int)
     """
     inbound = condense_args(request, True)
     return get_term(inbound)

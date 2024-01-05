@@ -23,9 +23,7 @@ def index():
 
 @bp.route("/locations")
 def locations():
-    """
-    Details for all locations
-    """
+    """Details for all locations"""
     locs = foodDB.get("locs")
     return locs["value"]
     # return mult_waitz(locs["value"])
@@ -46,9 +44,7 @@ def locations_id(id: int):
 # TODO: allow enabling date argument
 @bp.route("/menus", methods=["GET"])
 def menus():
-    """
-    Basic menu details for all locations
-    """
+    """Basic menu details for all locations"""
     menus = foodDB.get("menus")
     del menus["key"]
     return menus
@@ -76,9 +72,7 @@ def menus_id(id: int):
 
 @bp.route("/items")
 def items():
-    """
-    All food items
-    """
+    """All food items"""
     items = foodDB.get("items")
     del items["key"]
     return items
@@ -122,7 +116,7 @@ def items_search_name(name: str):
 @bp.route("/items/sum", methods=["GET", "POST"])
 def items_sum():
     """
-    Summed macros for items <br>
+    Summed macros for items<br>
     required: <code>ids</code> (arr of str)
     """
     inbound = condense_args(request, True)

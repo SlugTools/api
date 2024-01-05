@@ -3,6 +3,7 @@ from re import search
 from app import app
 
 
+# TODO: refactor
 def get_index():
     map, functions, rules = {}, app.view_functions, app.url_map.iter_rules()
     color, hold = {"GET": "forestgreen", "POST": "dodgerblue"}, []
@@ -15,6 +16,8 @@ def get_index():
                     "routes": {},
                 }
             elif functions[i].__doc__:
+                spl = functions[i].__doc__.split("Example: ")
+                print(spl)
                 route = f"/{'/'.join(str(j).split('/')[2:])}"
                 dtype = search("<(.*):", route)
                 default = True if dtype else False
@@ -25,12 +28,12 @@ def get_index():
                     if k not in ["HEAD", "OPTIONS"]
                 ]
                 map[f"/{split[0]}"]["routes"][route] = {
-                    "description": functions[i].__doc__.split(" E")[0],
+                    "description": spl[0],
                     "methods": " ".join(sorted(methods, reverse=True)),
                 }
-                map[f"/{split[0]}"]["routes"][route] |= (
-                    {"default": functions[i].__doc__.split(": ")[1]} if default else {}
-                )
+                map[f"/{split[0]}"]["routes"][route] |= {
+                    "default": spl[1][:-5] if default else {}
+                }
                 hold.append(i)
     return map
 

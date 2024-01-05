@@ -5,11 +5,12 @@
     <h3>Access university data with ease!</h3>
     <p>
         The SlugTools API provides a standards-compliant interface that developers can use to access <b>UC Santa Cruz</b> data. It serves scraped and organized data across university sites and categories. Report any bugs/errors/issues <a href="https://github.slug.tools">here</a>.
-        <hr style="visibility:hidden;" />
-        All data is property of respective <a href="sources">sources</a>. Read up more on how this works <a href="https://github.slug.tools/api">here</a>.
     </p>
     <h1>Endpoints</h1>
-    <p>All endpoints return JSON <code>{}</code></p>
+    <p>
+        All endpoints return JSON <code>{}</code>
+        <br>Data is property of <a href="sources">Sources</a>
+    </p>
     <script
         src="{{ url_for('static', filename='js/prompt.js') }}">
     </script>
@@ -19,9 +20,9 @@
         {% for j in map[i]["routes"] %}
             <h4>
                 {% if "<" in j %}
-                    <a onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="cursor: pointer">{{ j.split()[0] }}</a>
+                    <a onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="color: #0000EE; cursor: pointer">{{ j.split()[0] }}</a>
                 {% else %}
-                    <a href={{ i + j }} style="text-decoration: none;">{{ j.split()[0] }}</a>
+                    <a href={{ i + j }} style="color: #0000EE; text-decoration:none;">{{ j.split()[0] }}</a>
                 {% endif %}
                 {{ map[i]["routes"][j]["methods"]|safe }}
             </h4>

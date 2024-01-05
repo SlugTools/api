@@ -17,10 +17,10 @@ def index():
 
 @bp.route("/current")
 def current():
-    """Retrieve current weather data."""
+    """Retrieve current weather data"""
 
     data = omw.get(
-        f"/data/2.5/weather?lat=36.99&lon=-122.06&units=imperial&appid={app.config['OPENWEATHERMAP_KEY']}"
+        f"/data/2.5/weather?lat=36.99&lon=-122.06&units=imperial&appid={app.config['OPENWEATHER_KEY']}"
     ).json()
     sunrise = datetime.fromtimestamp(int(data["sys"]["sunrise"]))
     sunset = datetime.fromtimestamp(int(data["sys"]["sunset"]))
