@@ -17,6 +17,7 @@ dependencies = [
   "orjson",
   "portolan",
   "python-dotenv",
+  "pytz",
   "round-nutrition",
   "schedule",
   "sentry-sdk[flask]",
