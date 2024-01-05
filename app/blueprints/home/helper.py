@@ -17,7 +17,6 @@ def get_index():
                 }
             elif functions[i].__doc__:
                 spl = functions[i].__doc__.split("Example: ")
-                print(spl)
                 route = f"/{'/'.join(str(j).split('/')[2:])}"
                 dtype = search("<(.*):", route)
                 default = True if dtype else False

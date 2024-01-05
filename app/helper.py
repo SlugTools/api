@@ -65,5 +65,4 @@ def readify(text):
 def rounder(num):
     with localcontext() as ctx:
         ctx.rounding = ROUND_HALF_UP
-        print(num)
         return Decimal(num).to_integral_value()
