@@ -104,7 +104,7 @@ def get_term(inbound):
         else:
             hold = [
                 inbound["quarter"].lower(),
-                quarters[inbound["quarter"].lower()][1],
+                quarters[inbound["quarter"].lower()],
             ]
     if inbound.get("year") and (
         int(inbound["year"]) - 1 <= year

@@ -22,7 +22,7 @@
                 {% if "<" in j %}
                     <a onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="color: #0000EE; cursor: pointer">{{ j.split()[0] }}</a>
                 {% else %}
-                    <a href={{ i + j }} style="color: #0000EE; text-decoration:none;">{{ j.split()[0] }}</a>
+                    <a href={{ i + j }} style="color: #0000EE; text-decoration: none;">{{ j.split()[0] }}</a>
                 {% endif %}
                 {{ map[i]["routes"][j]["methods"]|safe }}
             </h4>
