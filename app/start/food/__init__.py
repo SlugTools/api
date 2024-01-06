@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup, SoupStrainer
 from httpx import Client
 from thefuzz.process import extract, extractOne
 
-from app import readify
+from app import nutri, readify
 
 # TODO: periodic scraping
 
@@ -39,7 +39,7 @@ def embed_to_reg_url(embed):
 
 
 # nutrition site
-def build_managed_loc(menu_site, soup):
+def build_managed_loc(soup):
     locs = {}
 
     for i in soup:
@@ -48,9 +48,10 @@ def build_managed_loc(menu_site, soup):
             name = params["locationName"][0]
             locs[name] = {
                 "id": int(params["locationNum"][0]),
-                "url": f"{menu_site}{i['href']}",
+                "url": f"{nutri.base_url}/{i['href']}",
                 "name": name,
-                "managed": True,
+                "isDH": name[-4:] == "Hall",
+                "hasMenu": True,
             }
 
     # FIXME: workaround for UCen Bistro / UCen Cafe
@@ -72,7 +73,7 @@ def parse_location_meta(li):
 
 
 # dine site loc = nutrition site loc
-def handle_direct_match(locs, name, info, menu_site):
+def handle_direct_match(locs, name, info):
     if locs.get(name):
         locs[name].update(parse_location_meta(info))
     else:
@@ -103,18 +104,19 @@ def build_unmanaged_loc(locs, name, info):
             break
 
     url = info.find("a", {"class": "btn btn-info"})["href"]
-    url = f"https://dining.ucsc.edu{url[2:]}" if url.startswith("..") else url
+    url = f"https://dining.ucsc.edu/{url[3:]}" if url.startswith("..") else url
 
     locs[name] = {
         "id": id,
         "url": url,
         "name": name,
-        "managed": False,
+        "isDH": False,
+        "hasMenu": False,
         **parse_location_meta(info),
     }
 
 
-def extract_location_info(temp, locs, menu_site):
+def extract_location_info(temp, locs):
     for i, j in enumerate(temp):
         info = temp[i + 1]
         menuBtn = info.find("a", {"class": "btn btn-info"})
@@ -122,8 +124,8 @@ def extract_location_info(temp, locs, menu_site):
         if j.name == "h2" and menuBtn:
             name = j.text.strip()
 
-            if menuBtn["href"] == menu_site:
-                handle_direct_match(locs, name, info, menu_site)
+            if menuBtn["href"] == nutri.base_url:
+                handle_direct_match(locs, name, info)
             else:
                 build_unmanaged_loc(locs, name, info)
 
@@ -131,19 +133,18 @@ def extract_location_info(temp, locs, menu_site):
             break
 
 
-def scrape_locations(client):
+def scrape_locations(cli):
     locs = {}
-    menu_site = "https://nutrition.sa.ucsc.edu/"
 
-    page = client.get(menu_site)
+    page = nutri.get("")
     soup = BeautifulSoup(page.text, "lxml", parse_only=SoupStrainer("a"))
-    locs = build_managed_loc(menu_site, soup)
+    locs = build_managed_loc(soup)
 
-    page = client.get("https://dining.ucsc.edu/eat/")
+    page = cli.get("https://dining.ucsc.edu/eat/")
     soup = BeautifulSoup(page.text, "lxml")
     temp = soup.find_all(["h2", "li", "table"])
 
-    extract_location_info(temp, locs, menu_site)
+    extract_location_info(temp, locs)
 
     return locs
 
@@ -184,30 +185,27 @@ def scrape_locations(client):
 
 
 # TODO: optimize and break into smaller funcs for readability
-def scrape_menus_items(client, locs, date=datetime.now().strftime("%m-%d-%Y")):
-    client, menus, items = (
-        Client(base_url="https://nutrition.sa.ucsc.edu/", verify=False),
-        {},
-        {},
-    )
-    for i in locs:
-        menus[i] = {}
-        if locs[i]["managed"]:
+def scrape_menus_items(locs, date=datetime.now().strftime("%m-%d-%Y")):
+    menus, items = [], {}
+    for i, j in enumerate(locs):
+        menus.append(
+            {
+                "id": j["id"],
+                "url": j["url"],
+                "name": j["name"],
+                "hasMenu": j["hasMenu"],
+                "menu": None,
+            }
+        )
+        if j["hasMenu"]:
             menu = {"short": {}, "long": {}}
             # short scraping
-            link = f"{locs[i]['url']}&dtdate={date}"
-            _, new = client.get(""), client.get(link)
+            link = f"{j['url']}&dtdate={date}"
+            new = nutri.get(link)
             if new.status_code == 500:
                 return None
             short_soup = BeautifulSoup(new.text, "lxml")
             status = short_soup.find("div", {"class": "shortmenuinstructs"})
-            menus[i] = {
-                "id": locs[i]["id"],
-                "url": locs[i]["url"],
-                "name": locs[i]["name"],
-                "managed": True,
-                "data": None,
-            }
             if status.text == "No Data Available":
                 continue
 
@@ -216,7 +214,7 @@ def scrape_menus_items(client, locs, date=datetime.now().strftime("%m-%d-%Y")):
             for k in short_soup.find_all("a"):
                 # TODO: do a faster check
                 if k["href"].startswith("longmenu"):
-                    new = client.get(k["href"])
+                    new = nutri.get(k["href"])
                     long_soup = BeautifulSoup(new.text, "lxml")
                     meal = parse_qs(k["href"])["mealName"][0]
                     menu["long"][meal] = {}
@@ -247,46 +245,44 @@ def scrape_menus_items(client, locs, date=datetime.now().strftime("%m-%d-%Y")):
                             menu["long"][meal][course][item_id] = name_price
                             hold[item_id] = name_price
 
-            # # short scraping
-            # if locs[i].get(j):
-            #     for k in short_soup.find_all(
-            #         "div",
-            #         {
-            #             "class": [
-            #                 "shortmenumeals",
-            #                 "shortmenucats",
-            #                 ["shortmenurecipes"],
-            #             ]
-            #         },
-            #     ):  # meal(s), course(s), item(s)
-            #         if k["class"][0] == "shortmenumeals":
-            #             menu["short"][k.text] = {}
-            #         elif k["class"][0] == "shortmenucats":
-            #             menu["short"][list(menu["short"].keys())[-1]][
-            #                 k.text.split("--")[1].strip()
-            #             ] = {}
-            #         else:
-            #             meal = list(menu["short"].keys())[-1]
-            #             course = list(menu["short"][meal].keys())[-1]
-            #             # FIXME: ValueError: 'Cheese Sauce' is not in list
-            #             try:
-            #                 menu["short"][meal][course][
-            #                     list(hold.keys())[
-            #                         list(hold.values()).index(readify(k.text))
-            #                     ]
-            #                 ] = readify(k.text)
-            #             except:
-            #                 pass
-            # items |= hold
-            # # short and long menu attachment
-            # wipe = True
-            # for m in menu["short"]:
-            #     if menu["short"][m]:
-            #         wipe = False
-            #     else:
-            #         menu["short"][m] = None
-            # # FIXME: clickable URL returns error because requires base cache
-            # menus[i][j]["menu"] = None if wipe else menu
+            # short scraping
+            for k in short_soup.find_all(
+                "div",
+                {
+                    "class": [
+                        "shortmenumeals",
+                        "shortmenucats",
+                        ["shortmenurecipes"],
+                    ]
+                },
+            ):  # meal(s), course(s), item(s)
+                if k["class"][0] == "shortmenumeals":
+                    menu["short"][k.text] = {}
+                elif k["class"][0] == "shortmenucats":
+                    menu["short"][list(menu["short"].keys())[-1]][
+                        k.text.split("--")[1].strip()
+                    ] = {}
+                else:
+                    meal = list(menu["short"].keys())[-1]
+                    course = list(menu["short"][meal].keys())[-1]
+                    # FIXME: ValueError: 'Cheese Sauce' is not in list
+                    try:
+                        menu["short"][meal][course][
+                            list(hold.keys())[
+                                list(hold.values()).index(readify(k.text))
+                            ]
+                        ] = readify(k.text)
+                    except:
+                        pass
+            items |= hold
+            # short and long menu attachment
+            wipe = True
+            for m in menu["short"]:
+                if menu["short"][m]:
+                    wipe = False
+                else:
+                    menu["short"][m] = None
+            menus[i]["menu"] = None if wipe else menu
     # for i in menus["butteries"]:
     #     if menus["butteries"][i] and menus["butteries"][i].get("short"):
     #         menus["butteries"][i]["menu"] = menus["butteries"][i].pop("long")

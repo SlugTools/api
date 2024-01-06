@@ -38,32 +38,33 @@ print("done")
 from .start import catalog, food, laundry
 
 
-def scrape_data(client):
-    def scrape_catalog(client):
+def scrape_data(cli):
+    def scrape_catalog(cli):
         print("scraping room data...", end="", flush=True)
-        rooms = catalog.scrape_rooms(client)
+        rooms = catalog.scrape_rooms(cli)
         print("done\nscraping pisa headers...", end="", flush=True)
-        inB, outB = catalog.build_headers(client)
+        inB, outB = catalog.build_headers(cli)
         print("done")
         return [rooms, inB, outB]
 
-    def scrape_food(client):
+    def scrape_food(cli):
         print("scraping location data...", end="", flush=True)
-        locs = food.scrape_locations(client)
+        locs = food.scrape_locations(cli)
+        locs = list(locs.values())
         print("done\nscraping menu data...", end="", flush=True)
-        menus, items = food.scrape_menus_items(client, locs)
+        menus, items = food.scrape_menus_items(locs)
         print("done")
-        return [list(locs.values()), menus, items]
+        return [locs, menus, items]
 
-    def scrape_laundry(client):
+    def scrape_laundry(cli):
         print("scraping laundry data...", end="", flush=True)
-        rooms = laundry.scrape_rooms(client)
+        rooms = laundry.scrape_rooms(cli)
         print("done")
         return rooms
 
-    cat = scrape_catalog(client)
-    fd = scrape_food(client)
-    ld = scrape_laundry(client)
+    cat = scrape_catalog(cli)
+    fd = scrape_food(cli)
+    ld = scrape_laundry(cli)
     print("saving to databases...", end="", flush=True)
     catalogDB.put(cat[0], "rooms")
     catalogDB.put(forge(cat[1]), "inB")  # template for users on how to build headers
@@ -117,12 +118,11 @@ with app.app_context():
     laundryDB = deta.Base("laundry")
     print("done")
 
+    currTerm = list(catalogDB.get("template")["02term"].values())[-1]
+
     if "--noscrape" not in sys.argv:
         scrape_data(Client(verify=False))
 
-    currTerm = list(catalogDB.get("template")["02term"].values())[-1]
-    waitz = Client(base_url="https://waitz.io")
-    omw = Client(base_url="https://api.openweathermap.org")
     srcs = register_blueprints(app)
     # print("registering event loops...", end="", flush=True)
     # every().day.at("00:00").do(scrape_data, client=Client())

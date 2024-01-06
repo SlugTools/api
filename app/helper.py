@@ -2,6 +2,12 @@ from decimal import ROUND_HALF_UP, Decimal, localcontext
 from re import findall, sub
 from unicodedata import normalize
 
+from httpx import Client
+
+waitz = Client(base_url="https://waitz.io", verify=False)
+omw = Client(base_url="https://api.openweathermap.org", verify=False)
+nutri = Client(base_url="https://nutrition.sa.ucsc.edu/", verify=False)
+
 
 # TODO: remove lower option, conserve strict inbound header case sensitivity
 def camel_case(text):

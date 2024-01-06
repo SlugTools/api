@@ -9,7 +9,7 @@ from httpx import Client
 from round_nutrition import *
 from thefuzz.process import extractOne
 
-from app import readify, waitz
+from app import nutri, readify, waitz
 
 
 def build_data(live, compare):
@@ -110,14 +110,14 @@ def round_comply(values):
 
 # TODO: simplify this
 def scrape_item(id, comply=True):
-    client = Client(base_url="https://nutrition.sa.ucsc.edu/")
-    # location set to lowest int:02d; full content not displayed without locationNum argument
-    _, url = client.get(""), client.get(f"label.aspx?locationNum=05&RecNumAndPort={id}")
-    soup = BeautifulSoup(url.text, "lxml")
+    # TODO: locationNum=05 needed or not?
+    res = nutri.get(f"label.aspx?RecNumAndPort={id}")
+    soup = BeautifulSoup(res.text, "lxml")
     if soup.find("div", {"class": "labelnotavailable"}):
         return None
     master = {
         "name": soup.find("div", {"class": "labelrecipe"}).text,
+        "url": str(res.url),
         "image": None,
         "ingredients": soup.find("span", {"class": "labelingredientsvalue"}).text,
         "labels": {
@@ -174,7 +174,7 @@ def scrape_item(id, comply=True):
 
     # nutrition
     complete = ""
-    soup = BeautifulSoup(url.text, "lxml", parse_only=SoupStrainer("tr"))
+    soup = BeautifulSoup(res.text, "lxml", parse_only=SoupStrainer("tr"))
     for i in soup.find("td"):
         complete += readify(i.text)
 

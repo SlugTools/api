@@ -46,8 +46,7 @@ def locations_id(id: int):
 def menus():
     """Basic menu details for all locations"""
     menus = foodDB.get("menus")
-    del menus["key"]
-    return menus
+    return menus["value"]
 
 
 # TODO: allow enabling date argument
@@ -59,14 +58,9 @@ def menus_id(id: int):
     Example: 40
     """
     menus = foodDB.get("menus")
-    for i in menus:
-        for j in menus[i]:
-            if j == str(id):
-                return (
-                    menus[i][j]
-                    if menus[i][j]
-                    else abort(204, "The requested menu is empty.")
-                )
+    for i in menus["value"]:
+        if i == str(id):
+            return i
     abort(404)
 
 
