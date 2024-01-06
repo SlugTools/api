@@ -49,7 +49,9 @@ def get_rooms_name(name, rooms):
     return master
 
 
-def get_ratings(name):
+# TODO: https://github.com/Nobelz/RateMyProfessorAPI has a ~2s slower implementation; push a PR
+# FIXME: fetch __ref from somewhere
+def get_rmp(name):
     # FIXME: sid possibly prone to change
     page = get(
         f"https://www.ratemyprofessors.com/search/professors/1078?q={quote_plus(name)}",
@@ -59,27 +61,29 @@ def get_ratings(name):
 
     for i in soup:
         tx = i.text
-        if "_ = " in tx:
-            pattern = compile(r"_ = ({.*?});")
-            match = pattern.search(tx)
+        pattern = compile(r"_ = ({.*?});")
+        match = pattern.search(tx)
+        if match:
             content = loads(match.group(1))
+            with open("rmp.json", "w") as f:
+                f.write(str(content))
             # using first match at index 4 (relative to sid query argument)
             # if pushing pr to api library, access reference IDs to make list of teachers
             content = next(islice(content.values(), 4, 5))
-            for key, value in content.items():
-                if isinstance(value, int) and value <= 0:
-                    content[key] = None
+            for i, j in content.items():
+                if isinstance(j, int) and j <= 0:
+                    content[i] = None
             break
 
     return (
         {
             "name": f"{content['firstName']} {content['lastName']}",
-            "department": content["department"].title().replace("And", "and"),
+            "dep": content["department"].title().replace("And", "and"),
             "rating": content["avgRating"],
             "ratings": content["numRatings"],
-            "difficulty": content["avgDifficulty"],
+            "diff": content["avgDifficulty"],
             # FIXME: wouldRetake displays null if 0%
-            "wouldRetake": f"{round(content['wouldTakeAgainPercent'])}%"
+            "retake": f"{round(content['wouldTakeAgainPercent'])}%"
             if content["wouldTakeAgainPercent"]
             else None,
             "url": f"https://www.ratemyprofessors.com/ShowRatings.jsp?tid={content['legacyId']}",

@@ -8,16 +8,16 @@ from .helper import *
 bp = Blueprint("food", __name__)
 srcs = {
     "round-nutrition": "https://pypi.org/project/round-nutrition/",
-    "UCSC Dining": "https://dining.ucsc.edu/eat/",
-    "UCSC Dining Menus": "https://nutrition.sa.ucsc.edu/",
-    "UCSC Basic Needs": "https://basicneeds.ucsc.edu/resources/on-campus-food.html",
+    "Dining Info": "https://dining.ucsc.edu/eat/",
+    "Dining Menus": "https://nutrition.sa.ucsc.edu/",
+    # "UCSC Basic Needs": "https://basicneeds.ucsc.edu/resources/on-campus-food.html",
     "Waitz": "https://waitz.io/ucsc",
 }
 
 
 @bp.route("/")
 def index():
-    """On-Campus Locations, Menus, and Nutrition"""
+    """Locations, Menus, and Nutrition"""
     return redirect(f"/#{request.blueprint}")
 
 
@@ -32,7 +32,7 @@ def locations():
 @bp.route("/locations/<int:id>")
 def locations_id(id: int):
     """
-    Details for location<br>
+    Full details for location<br>
     required: <code>id</code> (int)
     Example: 40
     """
@@ -42,7 +42,7 @@ def locations_id(id: int):
 
 
 # TODO: allow enabling date argument
-@bp.route("/menus", methods=["GET"])
+@bp.route("/menus")
 def menus():
     """Basic menu details for all locations"""
     menus = foodDB.get("menus")
@@ -59,7 +59,7 @@ def menus_id(id: int):
     """
     menus = foodDB.get("menus")
     for i in menus["value"]:
-        if i == str(id):
+        if id == i["id"]:
             return i
     abort(404)
 
@@ -85,7 +85,7 @@ def items_id(id: str):
 
 # account for item IDs with fractional servings
 @bp.route("/items/<string:id_1>/<string:id_2>")
-def items_id_1_id_2(id_1: str, id_2: str):
+def items_id_frac(id_1: str, id_2: str):
     response = scrape_item(f"{id_1}/{id_2}")
     return response if response else abort(404)
 

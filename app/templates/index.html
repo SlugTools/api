@@ -4,12 +4,14 @@
     <meta name="Description" content="A simple REST API that returns detailed and organized data on services pertaining to UC Santa Cruz.">
     <h3>Access university data with ease!</h3>
     <p>
-        The SlugTools API provides a standards-compliant interface that developers can use to access <b>UC Santa Cruz</b> data. It serves scraped and organized data across university sites and categories. Report any bugs/errors/issues <a href="https://github.slug.tools">here</a>.
+        The SlugTools API provides a standards-compliant interface that developers can use to access <b>UC Santa Cruz</b> data.
+        It serves scraped and organized data across university sites and categories.
+        Report any bugs/errors/issues <a href="https://github.slug.tools">here</a>.
     </p>
     <h1>Endpoints</h1>
     <p>
         All endpoints return JSON <code>{}</code>
-        <br>Data is property of <a href="sources">Sources</a>
+        <br>See the sources of data <a href="sources">here</a>
     </p>
     <script
         src="{{ url_for('static', filename='js/prompt.js') }}">
@@ -20,7 +22,7 @@
         {% for j in map[i]["routes"] %}
             <h4>
                 {% if "<" in j %}
-                    <a onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="color: #0000EE; cursor: pointer">{{ j.split()[0] }}</a>
+                    <a title={{ j }} onclick="promtpGo('{{ map[i]["routes"][j]["default"] }}', '{{ j.split('<')[1][:-1] }}', '{{ i }}{{ j.split('<')[0] }}')" style="color: #0000EE; cursor: pointer;">{{ j.split()[0] }}</a>
                 {% else %}
                     <a href={{ i + j }} style="color: #0000EE; text-decoration: none;">{{ j.split()[0] }}</a>
                 {% endif %}
@@ -30,6 +32,6 @@
         {% endfor %}
     {% endfor %}
     <footer>
-        <a href="https://www.digitalocean.com/?refcode=6c62cf272692&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge"></a><a href="https://simpleanalytics.com/api.slug.tools?utm_source=api.slug.tools&utm_content=badge" referrerpolicy="origin" target="_blank"><img src="https://simpleanalyticsbadges.com/api.slug.tools?logo=fdc700&text=fdc700&background=003c6c" style="object-fit: scale-down; max-width: 25%;" referrerpolicy="no-referrer" crossorigin="anonymous"></a>
+        <a href="https://www.digitalocean.com/?refcode=6c62cf272692&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge"><img src="https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%201.svg" alt="DigitalOcean Referral Badge"></a><a href="https://simpleanalytics.com/api.slug.tools?utm_source=api.slug.tools&utm_content=badge" referrerpolicy="origin" target="_blank"><img src="https://simpleanalyticsbadges.com/api.slug.tools?logo=fdc700&text=fdc700&background=003c6c" referrerpolicy="no-referrer" crossorigin="anonymous"></a>
     </footer>
 {% endblock %}

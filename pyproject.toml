@@ -1,7 +1,9 @@
+[build-system]
+build-backend = "pdm.backend"
+requires = ["pdm-backend"]
+
 [project]
-authors = [
-  {name = "Harsh Dadhich", email = "hdadhich01@gmail.com"}
-]
+authors = [{name = "Harsh Dadhich", email = "hdadhich01@gmail.com"}]
 dependencies = [
   "beautifulsoup4",
   "deta",
