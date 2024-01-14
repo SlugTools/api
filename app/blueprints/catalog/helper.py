@@ -14,7 +14,7 @@ from app import currTerm, force_to_int, parse_days_times, readify
 
 # TODO: add name
 def get_rooms_name(name, rooms):
-    res = extractOne(name, list(rooms.keys()))
+    res = extractOne(name, rooms.keys())
     if not compile(r"\d").search(name):
         abort(
             400,
@@ -37,14 +37,15 @@ def get_rooms_name(name, rooms):
             }
         )
     master = {
+        "name": res[0],
         "link": rooms[res[0]],
-        "capacity": int(titles[0].text.split(" ")[-1]),
-        "facilityID": titles[1].text.split(": ")[-1],
-        "equipment": [readify(i.text) for i in soup.find_all("li")],
+        "cap": int(titles[1].text.split(": ")[1]),
+        "id": titles[0].text.split(": ")[1],
+        "equip": [readify(i.text) for i in soup.find_all("li")],
         "notes": readify(
             " ".join([i.text for i in soup.find("ul").findNext(["p", "span"])])
         ),
-        "images": images,
+        "imgs": images,
     }
     return master
 
@@ -65,8 +66,6 @@ def get_rmp(name):
         match = pattern.search(tx)
         if match:
             content = loads(match.group(1))
-            with open("rmp.json", "w") as f:
-                f.write(str(content))
             # using first match at index 4 (relative to sid query argument)
             # if pushing pr to api library, access reference IDs to make list of teachers
             content = next(islice(content.values(), 4, 5))

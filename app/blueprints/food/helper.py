@@ -70,7 +70,7 @@ def find_match(j, live, names):
     match = extractOne(j["name"], names)
     match = match[2] if match[1] > 90 else None
     data = None
-    if match:
+    if match is not None:
         # only invoke this req when found to prevent latency
         comp = waitz.get("/compare/ucsc").json()["data"]
         data = build_data(live[match], comp[match])
