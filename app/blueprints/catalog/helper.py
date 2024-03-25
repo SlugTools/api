@@ -82,9 +82,11 @@ def get_rmp(name):
             "ratings": content["numRatings"],
             "diff": content["avgDifficulty"],
             # FIXME: wouldRetake displays null if 0%
-            "retake": f"{round(content['wouldTakeAgainPercent'])}%"
-            if content["wouldTakeAgainPercent"]
-            else None,
+            "retake": (
+                f"{round(content['wouldTakeAgainPercent'])}%"
+                if content["wouldTakeAgainPercent"]
+                else None
+            ),
             "url": f"https://www.ratemyprofessors.com/ShowRatings.jsp?tid={content['legacyId']}",
         }
         if "id" in content and content["school"]["__ref"] == "U2Nob29sLTEwNzg="
@@ -239,7 +241,7 @@ def get_classes(inbound):
                     "instructor": comp[j + 2].text.replace(",", ", "),
                     "dates": {
                         "start": dates[0],
-                        "end": dates[1]
+                        "end": dates[1],
                         # "duration": precisedelta(datetime.strptime(dates[1], "%m/%d/%y") - datetime.strptime(dates[0], "%m/%d/%y"))
                     },
                 }
