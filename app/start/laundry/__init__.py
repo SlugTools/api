@@ -31,9 +31,11 @@ def scrape_rooms(client):
                 type = "dryers" if "dry" in i["type"].lower() else "washers"
                 summary[type].append(
                     {
-                        "status": i["time_left_lite2"]
-                        if i.get("time_left_lite2")
-                        else i["time_left_lite"]
+                        "status": (
+                            i["time_left_lite2"]
+                            if i.get("time_left_lite2")
+                            else i["time_left_lite"]
+                        )
                     }
                 )
         summary["dryers"] = summary["dryers"] or None

@@ -163,9 +163,9 @@ def scrape_item(id, comply=True):
             },
         },
     }
-    master[
-        "image"
-    ] = f"https://www.google.com/search?q={quote_plus(master['name'])}&tbm=isch"
+    master["image"] = (
+        f"https://www.google.com/search?q={quote_plus(master['name'])}&tbm=isch"
+    )
 
     # labels
     for i in soup.find_all("img"):
