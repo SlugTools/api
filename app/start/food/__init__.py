@@ -56,8 +56,11 @@ def build_managed_loc(soup):
 
     # FIXME: workaround for UCen Bistro / UCen Cafe
     cafe = "University Center Cafe"
-    locs[cafe] = locs.pop("UCen Coffee Bar")
-    locs[cafe]["name"] = cafe
+    try:
+        locs[cafe] = locs.pop("UCen Coffee Bar")
+        locs[cafe]["name"] = cafe
+    except:
+        pass
     return locs
 
 
