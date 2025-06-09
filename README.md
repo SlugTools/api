@@ -3,6 +3,12 @@
 
 # SlugTools API
 
+> [!WARNING]  
+> I've pulled this project down, couldn't pay for [slug.tools](https://slug.tools) anymore lol, might put put a static version on GitHub Pages sometime
+
+> [!NOTE]  
+> Want to check out how it worked? – view on [YouTube](https://youtu.be/LLvofw0o0KU?si=nDlIif5uo2x-nZjj)
+
 ### Access university data with ease!
 
 The SlugTools API provides a standards-compliant interface that developers can use to access UC Santa Cruz data. It serves scraped and organized data across university sites and categories. Report any bugs/errors/issues here.
