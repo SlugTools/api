@@ -3,10 +3,10 @@
 
 # SlugTools API
 
-> [!WARNING]  
+> [!WARNING]
 > I've pulled this project down, couldn't pay for [slug.tools](https://slug.tools) anymore lol, might put a static one on GH Pages
 
-> [!NOTE]  
+> [!NOTE]
 > Want to check out how it worked? – view on [YouTube](https://youtu.be/LLvofw0o0KU?si=nDlIif5uo2x-nZjj)
 
 ### Access university data with ease!
