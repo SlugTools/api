@@ -3,7 +3,7 @@ build-backend = "pdm.backend"
 requires = ["pdm-backend"]
 
 [project]
-authors = [{name = "Harsh Dadhich", email = "me@harshdadhich.com"}]
+authors = [{ name = "Harsh Dadhich", email = "me@harshdadhich.com" }]
 dependencies = [
   "beautifulsoup4",
   "deta",
@@ -26,7 +26,7 @@ dependencies = [
   "thefuzz[speedup]"
 ]
 description = "Default template for PDM package"
-license = {text = "MIT"}
+license = { text = "MIT" }
 name = "api"
 readme = "README.md"
 requires-python = "==3.10.*"
